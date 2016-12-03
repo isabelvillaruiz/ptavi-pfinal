@@ -1,0 +1,8 @@
+<config>
+    <account username="totoro@ghibli.com" passw="tonarinototoro" />
+    <uaserver ip="" puerto="5678" />
+    <rtpaudio puerto="5656" />
+    <regproxy ip="" puerto="5555" />
+    <log path="" />
+    <audio path="cancion.mp3" />
+</config>
