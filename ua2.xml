@@ -1,0 +1,8 @@
+<config>
+    <account username="calcifer@ghibli.com" passw="castilloambulante" />
+    <uaserver ip="" puerto="5876" />
+    <rtpaudio puerto="5665" />
+    <regproxy ip="" puerto="5555" />
+    <log path="" />
+    <audio path="cancion.mp3" />
+</config>
