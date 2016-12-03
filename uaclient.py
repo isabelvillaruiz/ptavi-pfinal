@@ -12,7 +12,15 @@ from xml.sax.handler import ContentHandler
 
 #FIRST PARAMETER : XML FILE 
 XML_DATA = sys.argv[1]
+#SECOND PARAMETRER : REQUEST
+REQUEST = sys.argv[2]
 
+if REQUEST == 'REGISTER':
+    EXPIRES = sys.argv[3]
+elif REQUEST == 'INVITE':
+    USUARIO == sys.argv[3]
+elif REQUEST == 'BYE':
+    USUARIO == sys.arvg[3]
 
 class SmallSMILHandler(ContentHandler):
 
@@ -48,11 +56,30 @@ print(data)
 
 
 
-'DATOS'
+'xml data'
 #Vamos a probar a sacar algun dato del diccionario creado con los datos del xml 
 
 ACCOUNT = data[0]['account']
 print("Esto es account: ", ACCOUNT)
 USERNAME = ACCOUNT['username']
 print("Esto es username:", USERNAME)
+UASERVER_PORT = data[1]['uaserver']['puerto']
+print("Esto es el puerto de escucha del UAServer:", UASERVER_PORT)
+UASERVER_IP = data[1]['uaserver']['ip']
+
+
+'''REQUESTS and their lines '''
+
+if REQUEST == "REGISTER":
+    SIP_INFO = USERNAME + ':' + UASERVER_PORT
+    SIP_LINE = " sip:" + SIP_INFO + " SIP/2.0\r\n"
+    EXPIRES_LINE = "Expires: " + EXPIRES + "\r\n"
+    LINE = "REGISTER" + SIP_LINE + EXPIRES_LINE
+    print("Esta es la linea que voy a enviar si es REGISTER: ")
+    print(LINE)
+elif REQUEST == "INVITE":
+     
+
+
+
 
