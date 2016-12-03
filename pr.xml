@@ -1,0 +1,5 @@
+<config>
+    <server name="Miyazaki" ip="" puerto="5555" />
+    <database path="" passwdpath="" />
+    <log path="" />
+</config>
