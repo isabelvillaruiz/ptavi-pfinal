@@ -108,7 +108,7 @@ if REQUEST == "REGISTER":
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
 elif REQUEST == "INVITE":
-    SIP_INFO = USERNAME
+    SIP_INFO = USUARIO
     SIP_LINE = " sip:" + SIP_INFO + " SIP/2.0\r\n"
     SDP_LINE_CT = "Content-Type: application/sdp" + "\r\n"
     print()
