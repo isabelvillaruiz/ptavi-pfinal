@@ -128,6 +128,10 @@ elif REQUEST == "INVITE":
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
+
+    #AQUI HABRA QUE VER SI RECIBIMOS EL 100 180 200 DEL PROXY EMPEZAR EL RTP
+    #"Ahora tendriamos que recibir en el 200 ok informacion del puerto rtp del servidor"
+
 elif REQUEST == "BYE":
     SIP_INFO = USERNAME
     LINE = "BYE" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
