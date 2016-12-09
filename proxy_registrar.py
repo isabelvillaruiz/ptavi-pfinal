@@ -167,15 +167,27 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             print("PODEMOS COMUNICARNOS CON ESTE USUARIO!")
                             dataportdata = data[USUARIO_SIP]['port']
                             print("Puerto del invitado", dataportdata)
-                            '''SOCKET
+                            '''SOCKET'''
                             # Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
                             my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                             my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                            my_socket.connect((PROXY_IP,int(PROXY_PORT)))
+                            my_socket.connect((dataipdata,int(dataportdata)))
                             my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
                             data = my_socket.recv(1024)
                             print(data.decode('utf-8'))
-                            '''
+                            WERECEIVE = data.decode('utf-8').split('\r\n\r\n')[0:-1]
+                            print("Prueba del WE RECEIVE: ", WERECEIVE)    
+                            MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
+                            MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
+                            MUSTRECEIVE200 = ("SIP/2.0 200 OK")
+                            MUSTRECEIVE = [MUSTRECEIVE100, MUSTRECEIVE180, MUSTRECEIVE200]
+
+
+                            if WERECEIVE == MUSTRECEIVE:
+                                self.wfile.write(b"SIP/2.0 100 TRYING\r\n\r\n")
+                                self.wfile.write(b"SIP/2.0 180 RINGING\r\n\r\n")
+                                self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")  
+                            
                         elif user != US_INVITE and user != US_ORIGIN:
                             self.wfile.write(b"SIP/2.0 404 User Not Found\r\n\r\n")
                             
