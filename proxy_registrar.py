@@ -4,11 +4,13 @@
 ''' PROXY - REGISTRO '''
 
 import socketserver
+import socket
 import sys
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from time import time, gmtime, strftime
 import json
+
 
 ''' READING AND EXTRACTION OF XML DATA'''
 
@@ -59,8 +61,8 @@ print("Este es el puerto del proxy: ", PROXY_PORT)
 
 class EchoHandler(socketserver.DatagramRequestHandler):
 
-
     dicc = {}
+    
 
     def register2json(self):
         json_file = open("registered.json", "w")
@@ -78,59 +80,110 @@ class EchoHandler(socketserver.DatagramRequestHandler):
 
 
     def handle(self):
-        """Escribe dirección y puerto del cliente (de tupla client_address).""" 
-        # Leyendo línea a línea lo que nos envía el cliente
-        text = self.rfile.read()
-        line = self.rfile.read()
-        print("El cliente nos manda " +"\r\n" + text.decode('utf-8'))
-        LINE = text.decode('utf-8')
-        Words_LINES = LINE.split()
-        REQUEST = Words_LINES[0]
-        print("Esto es mi split de lo que me manda el cliente" , Words_LINES)
-        print("La peticion es: ", REQUEST)
-        print("Listening...")
-
-
-        #datos_dicc = {}
-        
-        if REQUEST == 'REGISTER':
-
-            LINE_SIP = Words_LINES[1].split(":")
-            print("LINE_SIP:" , LINE_SIP)
-            self.json2registered()
-            USUARIO_SIP = LINE_SIP[1]
-            PUERTO_SIP = LINE_SIP[2]
+        while 1:
+            """Escribe dirección y puerto del cliente (de tupla client_address).""" 
+            # Leyendo línea a línea lo que nos envía el cliente
+            text = self.rfile.read()
+            line = self.rfile.read()
+            print("El cliente nos manda " +"\r\n" + text.decode('utf-8'))
+            LINE = text.decode('utf-8')
+            Words_LINES = LINE.split()
+            print("PRUEBA CON MIKE:", Words_LINES)
             REQUEST = Words_LINES[0]
-            Expires = Words_LINES[4]
-            DIR_ip = ("127.0.0.1")
-
-            #expiration = time.gmtime(int(time.time()) + Expires)
-            #str_exp = time.strftime('%Y-%m-%d %H:%M:%S', expiration)
-            #now = time.gmtime(time.time())
-            #str_now = time.strftime('%Y-%m-%d %H:%M:%S', now)
-
-            now = int(time())
-            #str_now = strftime('%Y-%m-%d %H:%M:%S', gmtime(now))
-            time_exval = int(Expires) + now
-            #str_exp = strftime('%Y-%m-%d %H:%M:%S', gmtime(time_exval))
-
-            self.dicc[USUARIO_SIP] = {'address': DIR_ip, 'expires': time_exval}
-            self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
-            lista_expirados = []
-            for user in self.dicc:
-                if self.dicc[user]['expires'] <= now:
-                    lista_expirados.append(user)
-            for name in lista_expirados:
-                del self.dicc[name]
-            self.register2json()
-            print(self.dicc)
-   
-        elif REQUEST == 'INVITE':
-            print("Imprimiendo sabiendo que es un invite: ", Words_LINES)
+            LINE_SIP = Words_LINES[1].split(":")
+            print("Esto es mi split de lo que me manda el cliente" , Words_LINES)
+            print("La peticion es: ", REQUEST)
+            print("Listening...")
 
 
+        
+            
 
 
+            if REQUEST == 'REGISTER':
+
+
+                print("LINE_SIP:" , LINE_SIP)
+                self.json2registered()
+                USUARIO_SIP = LINE_SIP[1]
+                print(USUARIO_SIP)
+                PUERTO_SIP = LINE_SIP[2]
+                print("Este es el puerto sip de la linea que nos envia el cliente: ", PUERTO_SIP)
+                REQUEST = Words_LINES[0]
+                Expires = int(Words_LINES[4])
+                print(Expires)
+                DIR_ip = self.client_address[0]
+                #PUERTO = self.client_address[1]
+                print("Direccion ip client_addres : ", DIR_ip)
+    
+                
+                #expiration = time.gmtime(int(time.time()) + Expires)
+                #str_exp = time.strftime('%Y-%m-%d %H:%M:%S', expiration)
+                #now = time.gmtime(time.time())
+                #str_now = time.strftime('%Y-%m-%d %H:%M:%S', now)
+    
+
+                now = int(time())
+                #str_now = strftime('%Y-%m-%d %H:%M:%S', gmtime(now))
+                time_exval = int(Expires) + now
+                #str_exp = strftime('%Y-%m-%d %H:%M:%S', gmtime(time_exval))
+
+                self.dicc[USUARIO_SIP] = {'address' : DIR_ip, 'port' : PUERTO_SIP,  'expires' : time_exval}
+                self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
+                lista_expirados = []
+                for user in self.dicc:
+                
+                    if self.dicc[user]['expires'] <= now:
+                        lista_expirados.append(user)
+                for name in lista_expirados:
+                    del self.dicc[name]
+                self.register2json()
+                print(self.dicc)     
+                
+
+  
+            elif REQUEST == 'INVITE':
+                print("Imprimiendo sabiendo que es un invite: ", Words_LINES)
+                #print(self.dicc)
+                USUARIO_SIP = LINE_SIP[1]
+                
+                US_INVITE = Words_LINES[1].split(":")[1]
+                US_ORIGIN = Words_LINES[6].split("=")[1]
+                
+
+                print("Este es el usuario al que queremos invitar" , US_INVITE)
+                with open('registered.json') as file:
+                    data = json.load(file)
+                    datos = data
+                    #print("IMPRIMIENDO EL DICCIONARIO", data)
+                    dataipdata = data[USUARIO_SIP]['address']
+                    
+                    print(dataipdata)
+                    
+                    for user in data:
+                        print('Este es el usuario o usuarios registrados', user)
+                        print("Este es el usuario al que queremos invitar: ", US_INVITE)
+                        if user == US_INVITE:
+                            print("PODEMOS COMUNICARNOS CON ESTE USUARIO!")
+                            dataportdata = data[USUARIO_SIP]['port']
+                            print("Puerto del invitado", dataportdata)
+                            '''SOCKET
+                            # Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
+                            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                            my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                            my_socket.connect((PROXY_IP,int(PROXY_PORT)))
+                            my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+                            data = my_socket.recv(1024)
+                            print(data.decode('utf-8'))
+                            '''
+                        elif user != US_INVITE and user != US_ORIGIN:
+                            self.wfile.write(b"SIP/2.0 404 User Not Found\r\n\r\n")
+                            
+                            
+                            
+            # Si no hay más líneas salimos del bucle infinito
+            if not line:
+                break
 
 
 
