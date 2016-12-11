@@ -16,8 +16,10 @@ import json
 
 #FIRST PARAMETER : XML FILE 
 XML_DATA = sys.argv[1]
-#SECOND PARAMETRER : REQUEST
-#REQUEST = sys.argv[2]
+
+
+if len(sys.argv) != 2:
+    sys.exit("Usage: python proxy_registrar.py config")
 
 class Handler(ContentHandler):
 
@@ -52,9 +54,10 @@ data = cHandler.get_tags()
 'xml data'
 
 PROXY_IP = data[0]['server']['ip']
-print("Esta es la ip del proxy: ", PROXY_IP)
+#print("Esta es la ip del proxy: ", PROXY_IP)
 PROXY_PORT = data[0]['server']['puerto']
-print("Este es el puerto del proxy: ", PROXY_PORT)
+#print("Este es el puerto del proxy: ", PROXY_PORT)
+PROXY_NAME = data[0]['server']['name']
 
 '''Recepcion SOCKET'''
 
@@ -144,7 +147,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
   
             elif REQUEST == 'INVITE':
                 print("Imprimiendo sabiendo que es un invite: ", Words_LINES)
-                #print(self.dicc)
+                
                 USUARIO_SIP = LINE_SIP[1]
                 
                 US_INVITE = Words_LINES[1].split(":")[1]
@@ -156,15 +159,17 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     data = json.load(file)
                     datos = data
                     #print("IMPRIMIENDO EL DICCIONARIO", data)
-                    dataipdata = data[USUARIO_SIP]['address']
+                    #dataipdata = data[USUARIO_SIP]['address']
+                    #print("ESTO ES DATA IP DATA", dataipdata)
                     
-                    print(dataipdata)
                     
+
                     for user in data:
-                        print('Este es el usuario o usuarios registrados', user)
-                        print("Este es el usuario al que queremos invitar: ", US_INVITE)
                         if user == US_INVITE:
                             print("PODEMOS COMUNICARNOS CON ESTE USUARIO!")
+                            print('Este es el usuario o usuarios registrados', user)
+                            print("Este es el usuario al que queremos invitar: ", US_INVITE)
+                            dataipdata = data[USUARIO_SIP]['address']
                             dataportdata = data[USUARIO_SIP]['port']
                             print("Puerto del invitado", dataportdata)
                             '''SOCKET'''
@@ -174,19 +179,40 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             my_socket.connect((dataipdata,int(dataportdata)))
                             my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
                             data = my_socket.recv(1024)
-                            print(data.decode('utf-8'))
+                            print("Hemos recibido del servidor: ", "\r\n\r\n",  data.decode('utf-8'))
                             WERECEIVE = data.decode('utf-8').split('\r\n\r\n')[0:-1]
+                            WERECEIVE_CODES = WERECEIVE[:3]
+                            WERECEIVE_SDP = WERECEIVE[3:]
+                            print("SPLITEANDO Y TAL " , WERECEIVE_SDP)
+                            SDP_SPLIT = WERECEIVE[4].split("\r\n")
+                            VERSION = WERECEIVE[4].split("\r\n")[0]
+                            ORIGIN = SDP_SPLIT[1]
+                            SESION = SDP_SPLIT[2]
+                            TIME = SDP_SPLIT[3]
+                            MULTIMEDIA = SDP_SPLIT[4]
+                            
+                            
+                            answer = WERECEIVE_SDP[0] + "\r\n" 
+                            answer +=  VERSION + "\r\n" + ORIGIN + "\r\n" + SESION
+                            answer += "\r\n" + TIME + "\r\n" + MULTIMEDIA
+                            
+                            
+                            
                             print("Prueba del WE RECEIVE: ", WERECEIVE)    
                             MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
                             MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
                             MUSTRECEIVE200 = ("SIP/2.0 200 OK")
                             MUSTRECEIVE = [MUSTRECEIVE100, MUSTRECEIVE180, MUSTRECEIVE200]
+                            #print("WERECEIVE_CODES", WERECEIVE_CODES)
+                            #print("MUSTRECEIVE", MUSTRECEIVE)
 
-
-                            if WERECEIVE == MUSTRECEIVE:
+                            if WERECEIVE_CODES == MUSTRECEIVE:
                                 self.wfile.write(b"SIP/2.0 100 TRYING\r\n\r\n")
                                 self.wfile.write(b"SIP/2.0 180 RINGING\r\n\r\n")
                                 self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")  
+                                self.wfile.write(bytes(answer, 'utf-8'))  
+
+                            
                             
                         elif user != US_INVITE and user != US_ORIGIN:
                             self.wfile.write(b"SIP/2.0 404 User Not Found\r\n\r\n")
@@ -206,7 +232,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
 if __name__ == "__main__":
     # Creamos servidor de eco y escuchamos
     serv = socketserver.UDPServer((PROXY_IP,int(PROXY_PORT)), EchoHandler)
-    print("Lanzando servidor PROXY de eco...")
+    print("Server " + PROXY_NAME + " listening at port " + PROXY_PORT + " ..." )
     try:
         serv.serve_forever()
     except KeyboardInterrupt:
