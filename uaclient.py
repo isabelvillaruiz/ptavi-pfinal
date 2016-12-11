@@ -15,13 +15,16 @@ XML_DATA = sys.argv[1]
 #SECOND PARAMETRER : REQUEST
 REQUEST = sys.argv[2]
 
+
+if len(sys.argv) != 4:
+    sys.exit("Usage: python uaclient.py config method option")
+
 if REQUEST == 'REGISTER':
     EXPIRES = sys.argv[3]
 elif REQUEST == 'INVITE':
     USUARIO = sys.argv[3]
 elif REQUEST == 'BYE':
     USUARIO = sys.argv[3]
-
 
 class Handler(ContentHandler):
 
@@ -127,8 +130,8 @@ elif REQUEST == "INVITE":
     print("Enviando: " + LINE)
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
-    print(data.decode('utf-8'))
-
+    print("AHORA ENVIARIAMOS ACK'S Y DESPUES RTP", data.decode('utf-8'))
+    
     #AQUI HABRA QUE VER SI RECIBIMOS EL 100 180 200 DEL PROXY EMPEZAR EL RTP
     #"Ahora tendriamos que recibir en el 200 ok informacion del puerto rtp del servidor"
 
