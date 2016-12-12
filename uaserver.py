@@ -72,7 +72,7 @@ RTP_PORT = data[2]['rtpaudio']['puerto']
 
 
 class EchoHandler(socketserver.DatagramRequestHandler):
-
+    PORT_RTP = []
     def handle(self):
             """Escribe dirección y puerto del cliente (de tupla client_address)."""
             while 1:
@@ -85,8 +85,16 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                 Words_LINES = LINE.split()
                 print("Esta es la linea que me envia el proxy", Words_LINES)                
                 REQUEST = Words_LINES[0]
+                #PORT_RTP = []
+                if REQUEST == 'INVITE':
+                    RTP_PORT_RECEIVE = Words_LINES[11]
+                    self.PORT_RTP.append(RTP_PORT_RECEIVE)
+                    
+                    
+                    print("LISTA RECIEN INVENTADA", self.PORT_RTP)
+                    print("Puerto RTP que nos envia el cliente en el INVITE: ", RTP_PORT_RECEIVE)
                 print("FUNCIONA")
-
+                
                 #Ahora que lo pienso es estupido porq el 405 lo detectara el prxy antes XD
                 if not REQUEST in METHODS:
                     LINE_405 = 'SIP/2.0 405 Method Not Allowed\r\n\r\n'
@@ -101,8 +109,13 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     answer += UASERVER_IP + " \r\n" + "s=SesionGhibli\r\n"
                     answer += "t=0\r\n" + "m=audio " + RTP_PORT + " RTP\r\n\r\n"
                     self.wfile.write(bytes(answer, 'utf-8'))
+                elif REQUEST == 'ACK':
+                    print("imprimiendo la lista inventada", self.PORT_RTP)
+                    PUERTO = self.PORT_RTP[0]
+                    print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", PUERTO)
                 elif REQUEST == 'BYE':
                     print("HOWL!")
+                
 
                 # Si no hay más líneas salimos del bucle infinito
                 if not line:
