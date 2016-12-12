@@ -130,13 +130,39 @@ elif REQUEST == "INVITE":
     print("Enviando: " + LINE)
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
-    print("AHORA ENVIARIAMOS ACK'S Y DESPUES RTP", data.decode('utf-8'))
+    print(data.decode('utf-8'))
     
-    #AQUI HABRA QUE VER SI RECIBIMOS EL 100 180 200 DEL PROXY EMPEZAR EL RTP
-    #"Ahora tendriamos que recibir en el 200 ok informacion del puerto rtp del servidor"
+    WERECEIVE = data.decode('utf-8').split('\r\n\r\n')
+    WERECEIVE_CODES = WERECEIVE[:3]
+    print("WERECEIVE_CODES: ", WERECEIVE_CODES) 
+    WERECEIVE_SDP = WERECEIVE[3:]
+    SDP_SPLIT = WERECEIVE[3].split("\r\n")
+    RTP_PORT_RECEIVE = SDP_SPLIT[5].split(" ")[1]
+    print("PRUEBA DEL PUERTO RTP QUE NOS ENVIA EL PROXY DEL SERVER: ", "\r\n", RTP_PORT_RECEIVE)
+
+
+    MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
+    MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
+    MUSTRECEIVE200 = ("SIP/2.0 200 OK")
+    MUSTRECEIVE = [MUSTRECEIVE100, MUSTRECEIVE180, MUSTRECEIVE200]
+
+    print("MUSTRECEIVE: ", MUSTRECEIVE)
+    print("WERECEIVE_CODES: ",WERECEIVE_CODES)
+    
+    '''ENVIO AUTOMATICO DE ACK AL RECIBIR 100 180 200 DEL PROXY POR PARTE DEL SERVIDOR'''
+    if WERECEIVE_CODES == MUSTRECEIVE:
+        SIP_INFO = USUARIO
+        LINE = "ACK" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
+        my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+        data = my_socket.recv(1024)
+        print(data.decode('utf-8'))
+        print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", RTP_PORT_RECEIVE)
+
+        #AQUI HABRA QUE VER SI RECIBIMOS EL 100 180 200 DEL PROXY EMPEZAR EL RTP
+        #"Ahora tendriamos que recibir en el 200 ok informacion del puerto rtp del servidor"
 
 elif REQUEST == "BYE":
-    SIP_INFO = USERNAME
+    SIP_INFO = USUARIO
     LINE = "BYE" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
     print("Enviando: " + LINE)
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
