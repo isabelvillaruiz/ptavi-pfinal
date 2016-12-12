@@ -149,8 +149,9 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                 print("Imprimiendo sabiendo que es un invite: ", Words_LINES)
                 
                 USUARIO_SIP = LINE_SIP[1]
-                
+                #print("USUARIO_SIP", USUARIO_SIP)
                 US_INVITE = Words_LINES[1].split(":")[1]
+                #print("US_INVITE", US_INVITE)
                 US_ORIGIN = Words_LINES[6].split("=")[1]
                 
 
@@ -179,11 +180,11 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             my_socket.connect((dataipdata,int(dataportdata)))
                             my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
                             data = my_socket.recv(1024)
-                            print("Hemos recibido del servidor: ", "\r\n\r\n",  data.decode('utf-8'))
+                            print("Hemos recibido del servidor:", "\r\n")
+                            print(data.decode('utf-8'))
                             WERECEIVE = data.decode('utf-8').split('\r\n\r\n')[0:-1]
                             WERECEIVE_CODES = WERECEIVE[:3]
                             WERECEIVE_SDP = WERECEIVE[3:]
-                            print("SPLITEANDO Y TAL " , WERECEIVE_SDP)
                             SDP_SPLIT = WERECEIVE[4].split("\r\n")
                             VERSION = WERECEIVE[4].split("\r\n")[0]
                             ORIGIN = SDP_SPLIT[1]
@@ -207,8 +208,8 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             #print("MUSTRECEIVE", MUSTRECEIVE)
 
                             if WERECEIVE_CODES == MUSTRECEIVE:
-                                self.wfile.write(b"SIP/2.0 100 TRYING\r\n\r\n")
-                                self.wfile.write(b"SIP/2.0 180 RINGING\r\n\r\n")
+                                self.wfile.write(b"SIP/2.0 100 Trying\r\n\r\n")
+                                self.wfile.write(b"SIP/2.0 180 Ring\r\n\r\n")
                                 self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")  
                                 self.wfile.write(bytes(answer, 'utf-8'))  
 
@@ -217,7 +218,38 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                         elif user != US_INVITE and user != US_ORIGIN:
                             self.wfile.write(b"SIP/2.0 404 User Not Found\r\n\r\n")
                             
+            elif REQUEST == 'ACK':
+                LINE = text.decode('utf-8')
+                LINE_ACK = LINE
+                print(LINE)
+                USUARIO_SIP = LINE_SIP[1]
+                print('USUARIO_SIP:' , USUARIO_SIP)
+                US_INVITE = Words_LINES[1].split(":")[1]
+                print("US_INVITE", US_INVITE)
+
+                print("Enviando ACK al servidor")
+                #Es lo mismo USUARIO_SIP que US_INVITE.
+
+                with open('registered.json') as file:
+                    data = json.load(file)
+                    datos = data
+                    for user in data:                
+                        if user == US_INVITE:
+                            dataportdata = data[USUARIO_SIP]['port']
+                            dataipdata = data[USUARIO_SIP]['address']
+                            #print("dataportdata: ", dataportdata) 
+                            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                            my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                            my_socket.connect((dataipdata,int(dataportdata)))
+                            my_socket.send(bytes(LINE_ACK, 'utf-8') + b'\r\n')
+                            data = my_socket.recv(1024)
+                            print(data.decode('utf-8'))
                             
+                            
+                
+                #Ahora debemos volver a entrar en el fichero y coger para el usuario sip
+                # su puerto del servidor para poder enviarle un ACK 
+                         
                             
             # Si no hay más líneas salimos del bucle infinito
             if not line:
