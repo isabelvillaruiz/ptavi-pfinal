@@ -7,6 +7,7 @@ import socket
 import sys
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
+import time
 
 ''' READING AND EXTRACTION OF XML DATA'''
 
@@ -64,25 +65,25 @@ print(data)
 #Vamos a probar a sacar algun dato del diccionario creado con los datos del xml 
 
 ACCOUNT = data[0]['account']
-print("Esto es account: ", ACCOUNT)
+#print("Esto es account: ", ACCOUNT)
 
 USERNAME = ACCOUNT['username']
-print("Esto es username:", USERNAME)
+#print("Esto es username:", USERNAME)
 
 UASERVER_PORT = data[1]['uaserver']['puerto']
-print("Esto es el puerto de escucha del UAServer:", UASERVER_PORT)
+#print("Esto es el puerto de escucha del UAServer:", UASERVER_PORT)
 
 UASERVER_IP = data[1]['uaserver']['ip']
-print("Esto es la direccion IP del UASERVER: ", UASERVER_IP)
+#print("Esto es la direccion IP del UASERVER: ", UASERVER_IP)
 
 RTP_PORT = data[2]['rtpaudio']['puerto']
-print("Esto es el puerdo de escuha de audio RTP: ", RTP_PORT)
+#print("Esto es el puerdo de escuha de audio RTP: ", RTP_PORT)
 
 PROXY_PORT = data[3]['regproxy']['puerto']
-print("Esto es el puerto del proxy: ", PROXY_PORT)
+#print("Esto es el puerto del proxy: ", PROXY_PORT)
 
 PROXY_IP = data[3]['regproxy']['ip']
-print("Esto es el puerto del proxy: ", PROXY_IP)
+#print("Esto es el puerto del proxy: ", PROXY_IP)
 
 
 
@@ -94,6 +95,10 @@ my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 my_socket.connect((PROXY_IP,int(PROXY_PORT)))
 
+'''LOG'''
+
+fich = open('log.txt','a')
+str_now = time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()))
 
 
 
@@ -105,8 +110,13 @@ if REQUEST == "REGISTER":
     EXPIRES_LINE = "Expires: " + EXPIRES + "\r\n"
     LINE = "REGISTER" + SIP_LINE + EXPIRES_LINE
     print("Esta es la linea que voy a enviar si es REGISTER: ")
+    
     print(LINE)
     print("Enviando: " + "\r\n" + LINE)
+    ''' LOG '''
+    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " REGISTER" 
+    datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + EXPIRES_LINE
+    fich.write(datos_log)    
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
@@ -174,6 +184,9 @@ print("Enviando: " + LINE)
 my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
 data = my_socket.recv(1024)
 '''
+
+
+
 
 # Cerramos todo
 my_socket.close()
