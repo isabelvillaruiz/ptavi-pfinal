@@ -8,6 +8,8 @@ import sys
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 import time
+import hashlib
+
 
 ''' READING AND EXTRACTION OF XML DATA'''
 
@@ -70,6 +72,8 @@ ACCOUNT = data[0]['account']
 USERNAME = ACCOUNT['username']
 #print("Esto es username:", USERNAME)
 
+PASSWORD = ACCOUNT['passwd']
+
 UASERVER_PORT = data[1]['uaserver']['puerto']
 #print("Esto es el puerto de escucha del UAServer:", UASERVER_PORT)
 
@@ -113,13 +117,50 @@ if REQUEST == "REGISTER":
     
     print(LINE)
     print("Enviando: " + "\r\n" + LINE)
+
     ''' LOG '''
     datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " REGISTER" 
     datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + EXPIRES_LINE
-    fich.write(datos_log)    
+    fich.write(datos_log)
+    '''end log'''  
+
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
+    
+    
+    LINE = data.decode('utf-8')
+    Words_LINES = LINE.split()
+    print("Esto es Words Lines" , Words_LINES)
+
+    if Words_LINES[1] == "401":
+        print("Hemos recibido un 401 Unauthorized")        
+        nonce = Words_LINES[6].split("'")[1]
+        print("nonce = ", nonce)
+        m = hashlib.sha1()
+        m.update(b'nonce')
+        m.update(b'PASSWORD')
+        m.hexdigest()
+        response = m.hexdigest()
+        print(m.hexdigest())
+        SIP_INFO = USERNAME + ':' + UASERVER_PORT
+        SIP_LINE = " sip:" + SIP_INFO + " SIP/2.0\r\n"
+        EXPIRES_LINE = "Expires: " + EXPIRES + "\r\n"
+        AUTH_LINE = "Authorization: Digest response=" + "'" + response + "'" + "\r\n"
+        LINE = "REGISTER" + SIP_LINE + EXPIRES_LINE + AUTH_LINE
+        my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+        data = my_socket.recv(1024)
+        print(data.decode('utf-8'))     
+        
+    #if data.decode('utf-8') == ("SIP/2.0 401 Unauthorized\r\n\r\n")
+    #    print("UNAUTHORIZED")
+    #if data.decode('utf-8') == "SIP/2.0 200 OK\r\n\r\n":
+    #    '''LOG'''
+    #    datos_log = str_now + " Received from " + PROXY_IP + ":" + PROXY_PORT 
+    #    datos_log += "SIP/2.0 " + "200 OK"
+    #    fich.write(datos_log)
+    #    '''end log''' 
+
 elif REQUEST == "INVITE":
     SIP_INFO = USUARIO
     SIP_LINE = " sip:" + SIP_INFO + " SIP/2.0\r\n"
@@ -138,6 +179,13 @@ elif REQUEST == "INVITE":
     print("Esta es la linea que voy a enviar si es INVITE: ")
     print(LINE)
     print("Enviando: " + LINE)
+
+    '''LOG '''
+    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " INVITE" 
+    datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + SDP_LINE
+    fich.write(datos_log)
+    ''' end log ''' 
+
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
@@ -159,7 +207,7 @@ elif REQUEST == "INVITE":
     print("MUSTRECEIVE: ", MUSTRECEIVE)
     print("WERECEIVE_CODES: ",WERECEIVE_CODES)
     
-    '''ENVIO AUTOMATICO DE ACK AL RECIBIR 100 180 200 DEL PROXY POR PARTE DEL SERVIDOR'''
+    #ENVIO AUTOMATICO DE ACK AL RECIBIR 100 180 200 DEL PROXY POR PARTE DEL SERVIDOR
     if WERECEIVE_CODES == MUSTRECEIVE:
         SIP_INFO = USUARIO
         LINE = "ACK" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
@@ -179,13 +227,6 @@ elif REQUEST == "BYE":
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
 
-'''
-print("Enviando: " + LINE)
-my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
-data = my_socket.recv(1024)
-'''
-
-
 
 
 # Cerramos todo
@@ -193,7 +234,11 @@ my_socket.close()
 print("Fin.")
 
 
-
+'''
+print("Enviando: " + LINE)
+my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+data = my_socket.recv(1024)
+'''
 
 
 
