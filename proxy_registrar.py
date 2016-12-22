@@ -10,7 +10,7 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from time import time, gmtime, strftime
 import json
-
+import hashlib
 
 ''' READING AND EXTRACTION OF XML DATA'''
 
@@ -59,6 +59,19 @@ PROXY_PORT = data[0]['server']['puerto']
 #print("Este es el puerto del proxy: ", PROXY_PORT)
 PROXY_NAME = data[0]['server']['name']
 
+
+
+'passwords data'
+
+passwd_file  = open('passwords.txt','r')
+passwd_data = passwd_file.read()
+print("Datos del archivo passwords: ")
+print(passwd_data)
+PASSWORD1 = passwd_data.split()[1].split("'")[1]
+PASSWORD2 = passwd_data.split()[3].split("'")[1]
+print("PASSWORD1: ", PASSWORD1)
+print("PASSWORD2: ", PASSWORD2)
+
 '''Recepcion SOCKET'''
 
 
@@ -94,6 +107,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
             print("PRUEBA CON MIKE:", Words_LINES)
             REQUEST = Words_LINES[0]
             LINE_SIP = Words_LINES[1].split(":")
+            nonce = "898989898989898989898989898988989"
             print("Esto es mi split de lo que me manda el cliente" , Words_LINES)
             print("La peticion es: ", REQUEST)
             print("Listening...")
@@ -104,45 +118,94 @@ class EchoHandler(socketserver.DatagramRequestHandler):
 
 
             if REQUEST == 'REGISTER':
-
-
-                print("LINE_SIP:" , LINE_SIP)
-                self.json2registered()
-                USUARIO_SIP = LINE_SIP[1]
-                print(USUARIO_SIP)
-                PUERTO_SIP = LINE_SIP[2]
-                print("Este es el puerto sip de la linea que nos envia el cliente: ", PUERTO_SIP)
-                REQUEST = Words_LINES[0]
-                Expires = int(Words_LINES[4])
-                print(Expires)
-                DIR_ip = self.client_address[0]
-                #PUERTO = self.client_address[1]
-                print("Direccion ip client_addres : ", DIR_ip)
-    
                 
-                #expiration = time.gmtime(int(time.time()) + Expires)
-                #str_exp = time.strftime('%Y-%m-%d %H:%M:%S', expiration)
-                #now = time.gmtime(time.time())
-                #str_now = time.strftime('%Y-%m-%d %H:%M:%S', now)
-    
+                print(len(Words_LINES))
+                if len(Words_LINES) == 8:
 
-                now = int(time())
-                #str_now = strftime('%Y-%m-%d %H:%M:%S', gmtime(now))
-                time_exval = int(Expires) + now
-                #str_exp = strftime('%Y-%m-%d %H:%M:%S', gmtime(time_exval))
 
-                self.dicc[USUARIO_SIP] = {'address' : DIR_ip, 'port' : PUERTO_SIP,  'expires' : time_exval}
-                self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
-                lista_expirados = []
-                for user in self.dicc:
-                
-                    if self.dicc[user]['expires'] <= now:
-                        lista_expirados.append(user)
-                for name in lista_expirados:
-                    del self.dicc[name]
-                self.register2json()
-                print(self.dicc)     
-                
+                    '''COMPROBACION DE LAS CONTRASEÑAS'''
+
+                    Words_LINES = LINE.split()
+                    LINE_SIP = Words_LINES[1].split(":")
+                    USUARIO_SIP = LINE_SIP[1]
+                    print(Words_LINES)
+                    response = Words_LINES[7].split("'")[1]
+                    print("response: ", response)
+                    
+                    if USUARIO_SIP == "totoro@ghibli.com":
+                        PASSWORD = PASSWORD2
+                        m = hashlib.sha1()
+                        m.update(b'nonce')
+                        m.update(b'PASSWORD')
+                        m.hexdigest()
+                        exp_response = m.hexdigest()
+                        print("exp_response: ", exp_response)
+                        if exp_response == response:
+                            self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
+                        elif exp_response != response:
+                            self.wfile.write(b"SIP/2.0 412 Conditional Request Failed\r\n\r\n") 
+                    elif USUARIO_SIP == "calcifer@ghibli.com":
+                        PASSWORD = PASSWORD1
+                        m = hashlib.sha1()
+                        m.update(b'nonce')
+                        m.update(b'PASSWORD')
+                        m.hexdigest()
+                        exp_response = m.hexdigest()
+                        print("exp_response: ", exp_response)
+                        if exp_response == response:
+                            self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
+                            break
+                        elif exp_response != response:
+                            self.wfile.write(b"SIP/2.0 412 Conditional Request Failed\r\n\r\n")
+                            break
+                    
+                    print("LINE_SIP:" , LINE_SIP)
+                    self.json2registered()
+                    USUARIO_SIP = LINE_SIP[1]
+                    print(USUARIO_SIP)
+                    PUERTO_SIP = LINE_SIP[2]
+                    print("Este es el puerto sip de la linea que nos envia el cliente: ", PUERTO_SIP)
+                    REQUEST = Words_LINES[0]
+                    Expires = int(Words_LINES[4])
+                    print(Expires)
+                    DIR_ip = self.client_address[0]
+                    #PUERTO = self.client_address[1]
+                    print("Direccion ip client_addres : ", DIR_ip)
+        
+                    
+                    #expiration = time.gmtime(int(time.time()) + Expires)
+                    #str_exp = time.strftime('%Y-%m-%d %H:%M:%S', expiration)
+                    #now = time.gmtime(time.time())
+                    #str_now = time.strftime('%Y-%m-%d %H:%M:%S', now)
+        
+
+                    now = int(time())
+                    #str_now = strftime('%Y-%m-%d %H:%M:%S', gmtime(now))
+                    time_exval = int(Expires) + now
+                    #str_exp = strftime('%Y-%m-%d %H:%M:%S', gmtime(time_exval))
+
+                    self.dicc[USUARIO_SIP] = {'address' : DIR_ip, 'port' : PUERTO_SIP,  'expires' : time_exval}
+                    #self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
+                    lista_expirados = []
+                    for user in self.dicc:
+                    
+                        if self.dicc[user]['expires'] <= now:
+                            lista_expirados.append(user)
+                    for name in lista_expirados:
+                        del self.dicc[name]
+                    self.register2json()
+                    print(self.dicc)
+                    
+                elif len(Words_LINES) == 5:
+                    print("Enviamos un 401 Unauthorized")
+                    LINE_SIP = ("SIP/2.0 401 Unauthorized\r\n\r\n")
+                    LINE_DIGEST = LINE_SIP + "WWW Authenticate: Digest "
+                    LINE_DIGEST += "nonce=" + "'" + nonce + "'" 
+                    self.wfile.write(bytes(LINE_DIGEST, 'utf-8'))
+
+                    
+                    
+                    
 
   
             elif REQUEST == 'INVITE':
