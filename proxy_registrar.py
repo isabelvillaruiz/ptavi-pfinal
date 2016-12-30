@@ -154,7 +154,6 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                         print("exp_response: ", exp_response)
                         if exp_response == response:
                             self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
-                            break
                         elif exp_response != response:
                             self.wfile.write(b"SIP/2.0 412 Conditional Request Failed\r\n\r\n")
                             break
@@ -194,6 +193,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     for name in lista_expirados:
                         del self.dicc[name]
                     self.register2json()
+                    print("El diccionario: ")
                     print(self.dicc)
                     
                 elif len(Words_LINES) == 5:
@@ -308,8 +308,32 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             data = my_socket.recv(1024)
                             print(data.decode('utf-8'))
                             
-                            
-                
+            elif REQUEST == 'BYE':
+                Words_LINES = LINE.split()
+                LINE = text.decode('utf-8')
+                USUARIO_SIP = LINE_SIP[1]
+                US_BYE = Words_LINES[1].split(":")[1]
+                with open('registered.json') as file:
+                    data = json.load(file)
+                    datos = data
+                    for user in data:                
+                        if user == US_BYE:
+                            dataportdata = data[USUARIO_SIP]['port']
+                            dataipdata = data[USUARIO_SIP]['address']
+                            #print("dataportdata: ", dataportdata) 
+                            print("Enviando: " + LINE)
+                            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                            my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                            my_socket.connect((dataipdata,int(dataportdata)))
+                            my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+                            data = my_socket.recv(1024)
+                            print(data.decode('utf-8'))
+                            MUSTRECEIVE200 = ("SIP/2.0 200 OK")
+                            MUSTRECEIVE = [MUSTRECEIVE200]
+                            WERECEIVE = data.decode('utf-8').split('\r\n\r\n')[0:-1]
+            
+                            if WERECEIVE == MUSTRECEIVE:
+                                self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
                 #Ahora debemos volver a entrar en el fichero y coger para el usuario sip
                 # su puerto del servidor para poder enviarle un ACK 
                          
