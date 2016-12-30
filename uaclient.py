@@ -5,6 +5,7 @@
 
 import socket
 import sys
+import os
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 import time
@@ -89,8 +90,9 @@ PROXY_PORT = data[3]['regproxy']['puerto']
 PROXY_IP = data[3]['regproxy']['ip']
 #print("Esto es el puerto del proxy: ", PROXY_IP)
 
+SONG = data[5]['audio']['path']
 
-
+LOG = data[4]['log']['path']
 
 
 '''SOCKET'''
@@ -101,7 +103,7 @@ my_socket.connect((PROXY_IP,int(PROXY_PORT)))
 
 '''LOG'''
 
-fich = open('log.txt','a')
+fich = open('uaclient_log.txt','a')
 str_now = time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()))
 
 
@@ -214,7 +216,14 @@ elif REQUEST == "INVITE":
         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
         data = my_socket.recv(1024)
         print(data.decode('utf-8'))
-        print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", RTP_PORT_RECEIVE)
+        print("Reproduciendo")
+        aEjecutar = './mp32rtp -i 127.0.0.1 -p ' + RTP_PORT_RECEIVE + ' < ' + SONG
+        #aEjecutar = "./mp32rtp -i 127.0.0.1 " -p " + RTP_PORT_RECEIVE
+        #aEjecutar += " < " + SONG
+
+        print ('Vamos a ejecutar', aEjecutar)
+        os.system(aEjecutar)
+        #print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", RTP_PORT_RECEIVE)
 
         #AQUI HABRA QUE VER SI RECIBIMOS EL 100 180 200 DEL PROXY EMPEZAR EL RTP
         #"Ahora tendriamos que recibir en el 200 ok informacion del puerto rtp del servidor"
