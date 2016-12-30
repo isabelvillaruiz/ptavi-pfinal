@@ -6,6 +6,7 @@
 import socket
 import socketserver
 import sys
+import os
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
@@ -61,14 +62,15 @@ print(data)
 #Vamos a probar a sacar algun dato del diccionario creado con los datos del xml 
 
 ACCOUNT = data[0]['account']
-print("Esto es account: ", ACCOUNT)
+#print("Esto es account: ", ACCOUNT)
 USERNAME = ACCOUNT['username']
-print("Esto es username:", USERNAME)
+#print("Esto es username:", USERNAME)
 UASERVER_PORT = data[1]['uaserver']['puerto']
-print("Esto es el puerto de escucha del UAServer:", UASERVER_PORT)
+#print("Esto es el puerto de escucha del UAServer:", UASERVER_PORT)
 UASERVER_IP = data[1]['uaserver']['ip']
-print("Esto es la direccion IP del UASERVER: ", UASERVER_IP)
+#print("Esto es la direccion IP del UASERVER: ", UASERVER_IP)
 RTP_PORT = data[2]['rtpaudio']['puerto']
+SONG = data[5]['audio']['path']
 
 
 class EchoHandler(socketserver.DatagramRequestHandler):
@@ -81,7 +83,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                 line = self.rfile.read()
                 print("El proxy nos manda del cliente " + "\r\n" + text.decode('utf-8'))
                 LINE = text.decode('utf-8')
-                METHODS = ['INVITE', 'ACK', 'BYE']
+                REQUESTS = ['INVITE', 'ACK', 'BYE']
                 Words_LINES = LINE.split()
                 print("Esta es la linea que me envia el proxy", Words_LINES)                
                 REQUEST = Words_LINES[0]
@@ -93,10 +95,10 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     
                     print("LISTA RECIEN INVENTADA", self.PORT_RTP)
                     print("Puerto RTP que nos envia el cliente en el INVITE: ", RTP_PORT_RECEIVE)
-                print("FUNCIONA")
+                
                 
                 #Ahora que lo pienso es estupido porq el 405 lo detectara el prxy antes XD
-                if not REQUEST in METHODS:
+                if not REQUEST in REQUESTS:
                     LINE_405 = 'SIP/2.0 405 Method Not Allowed\r\n\r\n'
                     self.wfile.write(LINE_405)           
 
@@ -110,11 +112,17 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     answer += "t=0\r\n" + "m=audio " + RTP_PORT + " RTP\r\n\r\n"
                     self.wfile.write(bytes(answer, 'utf-8'))
                 elif REQUEST == 'ACK':
-                    print("imprimiendo la lista inventada", self.PORT_RTP)
+                    #print("imprimiendo la lista inventada", self.PORT_RTP)
                     PUERTO = self.PORT_RTP[0]
-                    print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", PUERTO)
+                    print("Reproduciendo")
+                    aEjecutar = './mp32rtp -i 127.0.0.1 -p ' + PUERTO + ' < ' + SONG
+                    #aEjecutar = "./mp32rtp -i " + DIR_DEST + " -p " + PUERTO
+                    #aEjecutar += " < " + SONG
+                    os.system(aEjecutar)
+                    print('End')
+                    #print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", PUERTO)
                 elif REQUEST == 'BYE':
-                    print("HOWL!")
+                    self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
                 
 
                 # Si no hay más líneas salimos del bucle infinito
