@@ -14,7 +14,7 @@ import hashlib
 
 ''' READING AND EXTRACTION OF XML DATA'''
 
-#FIRST PARAMETER : XML FILE 
+#FIRST PARAMETER : XML FILE
 XML_DATA = sys.argv[1]
 #SECOND PARAMETRER : REQUEST
 REQUEST = sys.argv[2]
@@ -29,6 +29,7 @@ elif REQUEST == 'INVITE':
     USUARIO = sys.argv[3]
 elif REQUEST == 'BYE':
     USUARIO = sys.argv[3]
+
 
 class Handler(ContentHandler):
 
@@ -62,10 +63,8 @@ parser.parse(open(XML_DATA))
 data = cHandler.get_tags()
 print(data)
 
-
-
 'xml data'
-#Vamos a probar a sacar algun dato del diccionario creado con los datos del xml 
+#Vamos a probar a sacar algun dato del diccionario creado con los datos del xml
 
 ACCOUNT = data[0]['account']
 #print("Esto es account: ", ACCOUNT)
@@ -85,28 +84,25 @@ RTP_PORT = data[2]['rtpaudio']['puerto']
 #print("Esto es el puerdo de escuha de audio RTP: ", RTP_PORT)
 
 PROXY_PORT = data[3]['regproxy']['puerto']
-#print("Esto es el puerto del proxy: ", PROXY_PORT)
 
 PROXY_IP = data[3]['regproxy']['ip']
 #print("Esto es el puerto del proxy: ", PROXY_IP)
 
 SONG = data[5]['audio']['path']
 
-LOG = data[4]['log']['path']
+LOG_FILE = data[4]['log']['path']
 
 
 '''SOCKET'''
 # Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-my_socket.connect((PROXY_IP,int(PROXY_PORT)))
+my_socket.connect((PROXY_IP, int(PROXY_PORT)))
 
 '''LOG'''
-
-fich = open('uaclient_log.txt','a')
+fichero = LOG_FILE
+fich = open(fichero, 'a')
 str_now = time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()))
-
-
 
 '''REQUESTS and their lines '''
 
@@ -116,27 +112,29 @@ if REQUEST == "REGISTER":
     EXPIRES_LINE = "Expires: " + EXPIRES + "\r\n"
     LINE = "REGISTER" + SIP_LINE + EXPIRES_LINE
     print("Esta es la linea que voy a enviar si es REGISTER: ")
-    
     print(LINE)
     print("Enviando: " + "\r\n" + LINE)
 
     ''' LOG '''
-    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " REGISTER" 
-    datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + EXPIRES_LINE
+    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " "
+    datos_log += LINE.replace("\r\n", " ") + "\r\n"
     fich.write(datos_log)
-    '''end log'''  
+    '''end log'''
 
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
-    
-    
+    #Recepcion del proxy
     LINE = data.decode('utf-8')
     Words_LINES = LINE.split()
-    print("Esto es Words Lines" , Words_LINES)
+    print("Esto es Words Lines", Words_LINES)
 
     if Words_LINES[1] == "401":
-        print("Hemos recibido un 401 Unauthorized")        
+        print("Hemos recibido un 401 Unauthorized")
+        ''' LOG. '''
+        datos_log1 = str_now + " Received from " + PROXY_IP + ":" + PROXY_PORT
+        datos_log1 += " SIP/2.0 401 Unauthorized" + "\r\n"
+        fich.write(datos_log1)
         nonce = Words_LINES[6].split("'")[1]
         print("nonce = ", nonce)
         m = hashlib.sha1()
@@ -148,21 +146,32 @@ if REQUEST == "REGISTER":
         SIP_INFO = USERNAME + ':' + UASERVER_PORT
         SIP_LINE = " sip:" + SIP_INFO + " SIP/2.0\r\n"
         EXPIRES_LINE = "Expires: " + EXPIRES + "\r\n"
-        AUTH_LINE = "Authorization: Digest response=" + "'" + response + "'" + "\r\n"
+        AUTH_LINE = "Authorization: Digest response=" + "'" + response + "'"
+        AUTH_LINE += "\r\n"
         LINE = "REGISTER" + SIP_LINE + EXPIRES_LINE + AUTH_LINE
         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+        ''' LOG. '''
+        datos_log2 = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " "
+        datos_log2 += LINE.replace("\r\n", " ") + "\r\n"        
+        #datos_log2 += " REGISTER" + " sip:" + SIP_INFO + " SIP/2.0 " 
+        #datos_log2 += "Expires: " + EXPIRES 
+        #datos_log2 +=  " Authorization: Digest response=" + "'" + response 
+        #datos_log2 +=  "'" + "\r\n" 
+        fich.write(datos_log2)
         data = my_socket.recv(1024)
-        print(data.decode('utf-8'))     
-        
-    #if data.decode('utf-8') == ("SIP/2.0 401 Unauthorized\r\n\r\n")
-    #    print("UNAUTHORIZED")
-    #if data.decode('utf-8') == "SIP/2.0 200 OK\r\n\r\n":
-    #    '''LOG'''
-    #    datos_log = str_now + " Received from " + PROXY_IP + ":" + PROXY_PORT 
-    #    datos_log += "SIP/2.0 " + "200 OK"
-    #    fich.write(datos_log)
-    #    '''end log''' 
-
+        print(data.decode('utf-8'))
+        Words = data.decode('utf-8')
+        RCV_Words = Words.split()
+        if RCV_Words[1] == "200":
+            ''' LOG. ''' 
+            datos_log = str_now + " Received from " + PROXY_IP + ":" 
+            datos_log +=  PROXY_PORT + " "+  "SIP/2.0 200 OK" + "\r\n"
+            fich.write(datos_log)
+        elif RCV_Words[1] == "489":
+            ''' LOG. '''
+            datos_log = str_now + " Received from " + PROXY_IP + ":" 
+            datos_log += PROXY_PORT + " " + "SIP/2.0 489 Bad Event" + "\r\n"
+            fich.write(datos_log)
 elif REQUEST == "INVITE":
     SIP_INFO = USUARIO
     SIP_LINE = " sip:" + SIP_INFO + " SIP/2.0\r\n"
@@ -183,41 +192,49 @@ elif REQUEST == "INVITE":
     print("Enviando: " + LINE)
 
     '''LOG '''
-    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " INVITE" 
-    datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + SDP_LINE
+    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT 
+    datos_log += LINE.replace("\r\n", " ") + "\r\n"
+    #datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + SDP_LINE
     fich.write(datos_log)
-    ''' end log ''' 
+    ''' end log '''
 
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
-    
+
     WERECEIVE = data.decode('utf-8').split('\r\n\r\n')
     WERECEIVE_CODES = WERECEIVE[:3]
-    print("WERECEIVE_CODES: ", WERECEIVE_CODES) 
+    print("WERECEIVE_CODES: ", WERECEIVE_CODES)
     WERECEIVE_SDP = WERECEIVE[3:]
     SDP_SPLIT = WERECEIVE[3].split("\r\n")
     RTP_PORT_RECEIVE = SDP_SPLIT[5].split(" ")[1]
-    print("PRUEBA DEL PUERTO RTP QUE NOS ENVIA EL PROXY DEL SERVER: ", "\r\n", RTP_PORT_RECEIVE)
-
-
+    print("PRUEBA PUERTO RTP ENVIA PROXY-SERVER: ", "\r\n", RTP_PORT_RECEIVE)
+    #Comprobacion de recepcion
     MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
     MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
     MUSTRECEIVE200 = ("SIP/2.0 200 OK")
     MUSTRECEIVE = [MUSTRECEIVE100, MUSTRECEIVE180, MUSTRECEIVE200]
 
     print("MUSTRECEIVE: ", MUSTRECEIVE)
-    print("WERECEIVE_CODES: ",WERECEIVE_CODES)
-    
-    #ENVIO AUTOMATICO DE ACK AL RECIBIR 100 180 200 DEL PROXY POR PARTE DEL SERVIDOR
+    print("WERECEIVE_CODES: ", WERECEIVE_CODES)
+
+    #ENVIO AUTOMATICO ACK AL RECIBIR 100 180 200 DEL PROXY  PARTE DEL SERVIDOR
     if WERECEIVE_CODES == MUSTRECEIVE:
+        ''' LOG.'''
+        #HEMOS RECIBIDO EL 100 180 200 DEL PROXY
+        datos_log1 = str_now + " Received from " + PROXY_IP + ":" 
+        datos_log1 += PROXY_PORT + " SIP/2.0 100 Trying" 
+        datos_log1 += " SIP/2.0 180 Ring" + " SIP/2.0 200 OK "
+        datos_log1 += WERECEIVE[3].replace("\r\n", " ") + "\r\n"
+        fich.write(datos_log1)
         SIP_INFO = USUARIO
         LINE = "ACK" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
         data = my_socket.recv(1024)
         print(data.decode('utf-8'))
         print("Reproduciendo")
-        aEjecutar = './mp32rtp -i 127.0.0.1 -p ' + RTP_PORT_RECEIVE + ' < ' + SONG
+        aEjecutar = './mp32rtp -i 127.0.0.1 -p ' + RTP_PORT_RECEIVE + ' < '
+        aEjecutar += SONG
         #aEjecutar = "./mp32rtp -i 127.0.0.1 " -p " + RTP_PORT_RECEIVE
         #aEjecutar += " < " + SONG
 
@@ -225,19 +242,33 @@ elif REQUEST == "INVITE":
         os.system(aEjecutar)
         #print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", RTP_PORT_RECEIVE)
 
-        #AQUI HABRA QUE VER SI RECIBIMOS EL 100 180 200 DEL PROXY EMPEZAR EL RTP
-        #"Ahora tendriamos que recibir en el 200 ok informacion del puerto rtp del servidor"
+        
+        #ENVIAMOS ACK
+        datos_log2 = str_now + " Sent to " + PROXY_IP + ":"
+        datos_log2 += PROXY_PORT + " " + LINE.replace("\r\n", " ") + "\r\n"
+        fich.write(datos_log2)
+        
+
 
 elif REQUEST == "BYE":
     SIP_INFO = USUARIO
     LINE = "BYE" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
     print("Enviando: " + LINE)
+    ''' LOG'''
+    datos_log3 = str_now + " Sent to " + PROXY_IP + ":"
+    datos_log3 += PROXY_PORT + LINE.replace("\r\n", " ") + "\r\n"
+    fich.write(datos_log3)
     my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
-
-
-
+    Words = data.decode('utf-8')
+    RCV_Words = Words.split()
+    if RCV_Words[1] == "200":
+        ''' LOG '''
+        datos_log1 = str_now + " Received from " + PROXY_IP + ":" 
+        datos_log1 += PROXY_PORT + " SIP/2.0 200 OK "
+        fich.write(datos_log1)
+    
 # Cerramos todo
 my_socket.close()
 print("Fin.")
@@ -248,17 +279,3 @@ print("Enviando: " + LINE)
 my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
 data = my_socket.recv(1024)
 '''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
