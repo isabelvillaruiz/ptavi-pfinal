@@ -267,21 +267,11 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     #print("IMPRIMIENDO EL DICCIONARIO", data)
                     #dataipdata = data[USUARIO_SIP]['address']
                     #print("ESTO ES DATA IP DATA", dataipdata)
-                    
-                    ''' LECTURA DE DATOS DEL REGISTRO '''
-                    for user in data:                    
-                        if user == "totoro@ghibli.com":
-                            totoro_port = data["totoro@ghibli.com"]['port']
-                            totoro_ip = data["totoro@ghibli.com"]['address']
-                            print("TOTORO PORT", totoro_port)
-                            print("TOTORO IP", totoro_ip)
-                        if user == "calcifer@ghibli.com":
-                            clfer_port = data["calcifer@ghibli.com"]['port']
-                            clfer_ip = data["calcifer@ghibli.com"]['address']
-                            print("CALCIFER PORT", clfer_port)
-                            print("CALCIFER IP", clfer_ip)
-                    '''Comprobacion de la existencia del usuario. '''
+
                     for user in data:
+                        print(user)
+                        print(US_INVITE)
+                        print(US_ORIGIN)
                         if user == US_INVITE:
                             print("PODEMOS COMUNICARNOS CON ESTE USUARIO!")
                             print('Este es el usuario registrado', user)
@@ -356,8 +346,10 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                                 datos_log1 += "\r\n"
                                 fich.write(datos_log1)
 
-                        elif user != US_INVITE and user != US_ORIGIN:
+                        elif user != US_INVITE and user == US_ORIGIN:
+                            print("HELLO")
                             answer404 = ("SIP/2.0 404 User Not Found\r\n\r\n")
+                            print("Enviando SIP/2.0 404 User Not Found")
                             self.wfile.write(bytes(answer404, 'utf-8'))
                             '''LOG'''
                             datos_log = str_now + " Sent to "
