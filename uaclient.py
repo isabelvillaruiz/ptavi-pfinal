@@ -202,51 +202,59 @@ elif REQUEST == "INVITE":
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
 
-    WERECEIVE = data.decode('utf-8').split('\r\n\r\n')
-    WERECEIVE_CODES = WERECEIVE[:3]
-    print("WERECEIVE_CODES: ", WERECEIVE_CODES)
-    WERECEIVE_SDP = WERECEIVE[3:]
-    SDP_SPLIT = WERECEIVE[3].split("\r\n")
-    RTP_PORT_RECEIVE = SDP_SPLIT[5].split(" ")[1]
-    print("PRUEBA PUERTO RTP ENVIA PROXY-SERVER: ", "\r\n", RTP_PORT_RECEIVE)
-    #Comprobacion de recepcion
-    MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
-    MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
-    MUSTRECEIVE200 = ("SIP/2.0 200 OK")
-    MUSTRECEIVE = [MUSTRECEIVE100, MUSTRECEIVE180, MUSTRECEIVE200]
-
-    print("MUSTRECEIVE: ", MUSTRECEIVE)
-    print("WERECEIVE_CODES: ", WERECEIVE_CODES)
-
-    #ENVIO AUTOMATICO ACK AL RECIBIR 100 180 200 DEL PROXY  PARTE DEL SERVIDOR
-    if WERECEIVE_CODES == MUSTRECEIVE:
-        ''' LOG.'''
-        #HEMOS RECIBIDO EL 100 180 200 DEL PROXY
-        datos_log1 = str_now + " Received from " + PROXY_IP + ":" 
-        datos_log1 += PROXY_PORT + " SIP/2.0 100 Trying" 
-        datos_log1 += " SIP/2.0 180 Ring" + " SIP/2.0 200 OK "
-        datos_log1 += WERECEIVE[3].replace("\r\n", " ") + "\r\n"
-        fich.write(datos_log1)
-        SIP_INFO = USUARIO
-        LINE = "ACK" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
-        my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
-        data = my_socket.recv(1024)
-        print(data.decode('utf-8'))
-        print("Reproduciendo")
-        aEjecutar = './mp32rtp -i 127.0.0.1 -p ' + RTP_PORT_RECEIVE + ' < '
-        aEjecutar += SONG
-        #aEjecutar = "./mp32rtp -i 127.0.0.1 " -p " + RTP_PORT_RECEIVE
-        #aEjecutar += " < " + SONG
-
-        print ('Vamos a ejecutar', aEjecutar)
-        os.system(aEjecutar)
-        #print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", RTP_PORT_RECEIVE)
-
         
-        #ENVIAMOS ACK
-        datos_log2 = str_now + " Sent to " + PROXY_IP + ":"
-        datos_log2 += PROXY_PORT + " " + LINE.replace("\r\n", " ") + "\r\n"
-        fich.write(datos_log2)
+
+    WERECEIVE = data.decode('utf-8').split('\r\n\r\n')
+    
+    print("WE RECEIVE" ,WERECEIVE)
+    
+    if WERECEIVE[0] == "SIP/2.0 404 User Not Found":
+        print(WERECEIVE[0])
+    elif WERECEIVE[0] == "SIP/2.0 100 Trying":
+        WERECEIVE_CODES = WERECEIVE[:3]
+        print("WERECEIVE_CODES: ", WERECEIVE_CODES)
+        WERECEIVE_SDP = WERECEIVE[3:]
+        SDP_SPLIT = WERECEIVE[3].split("\r\n")
+        RTP_PORT_RECEIVE = SDP_SPLIT[5].split(" ")[1]
+        print("PUERTO RTP ENVIA PROXY-SERVER: ", "\r\n", RTP_PORT_RECEIVE)
+        #Comprobacion de recepcion
+        MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
+        MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
+        MUSTRECEIVE200 = ("SIP/2.0 200 OK")
+        MUSTRECEIVE = [MUSTRECEIVE100, MUSTRECEIVE180, MUSTRECEIVE200]
+
+        print("MUSTRECEIVE: ", MUSTRECEIVE)
+        print("WERECEIVE_CODES: ", WERECEIVE_CODES)
+
+        #ENVIO AUTOMATICO ACK AL RECIBIR 100 180 200 DEL PROXY  PARTE DEL SERVIDOR
+        if WERECEIVE_CODES == MUSTRECEIVE:
+            ''' LOG.'''
+            #HEMOS RECIBIDO EL 100 180 200 DEL PROXY
+            datos_log1 = str_now + " Received from " + PROXY_IP + ":" 
+            datos_log1 += PROXY_PORT + " SIP/2.0 100 Trying" 
+            datos_log1 += " SIP/2.0 180 Ring" + " SIP/2.0 200 OK "
+            datos_log1 += WERECEIVE[3].replace("\r\n", " ") + "\r\n"
+            fich.write(datos_log1)
+            SIP_INFO = USUARIO
+            LINE = "ACK" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
+            my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+            data = my_socket.recv(1024)
+            print(data.decode('utf-8'))
+            print("Reproduciendo")
+            aEjecutar = './mp32rtp -i 127.0.0.1 -p ' + RTP_PORT_RECEIVE + ' < '
+            aEjecutar += SONG
+            #aEjecutar = "./mp32rtp -i 127.0.0.1 " -p " + RTP_PORT_RECEIVE
+            #aEjecutar += " < " + SONG
+
+            print ('Vamos a ejecutar', aEjecutar)
+            os.system(aEjecutar)
+            #print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", RTP_PORT_RECEIVE)
+
+            
+            #ENVIAMOS ACK
+            datos_log2 = str_now + " Sent to " + PROXY_IP + ":"
+            datos_log2 += PROXY_PORT + " " + LINE.replace("\r\n", " ") + "\r\n"
+            fich.write(datos_log2)
         
 
 
