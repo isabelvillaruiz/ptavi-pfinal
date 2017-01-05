@@ -1,5 +1,5 @@
 <config>
     <server name="MiyazakiProxy" ip="127.0.0.1" puerto="5666" />
-    <database path="" passwdpath="" />
-    <log path="" />
+    <database path="registered.json" passwdpath="passwords.txt" />
+    <log path="pr_log.xml" />
 </config>
