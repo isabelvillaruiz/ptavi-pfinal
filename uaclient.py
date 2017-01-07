@@ -152,24 +152,24 @@ if REQUEST == "REGISTER":
         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
         ''' LOG. '''
         datos_log2 = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " "
-        datos_log2 += LINE.replace("\r\n", " ") + "\r\n"        
-        #datos_log2 += " REGISTER" + " sip:" + SIP_INFO + " SIP/2.0 " 
-        #datos_log2 += "Expires: " + EXPIRES 
-        #datos_log2 +=  " Authorization: Digest response=" + "'" + response 
-        #datos_log2 +=  "'" + "\r\n" 
+        datos_log2 += LINE.replace("\r\n", " ") + "\r\n"
+        #datos_log2 += " REGISTER" + " sip:" + SIP_INFO + " SIP/2.0 "
+        #datos_log2 += "Expires: " + EXPIRES
+        #datos_log2 +=  " Authorization: Digest response=" + "'" + response
+        #datos_log2 +=  "'" + "\r\n"
         fich.write(datos_log2)
         data = my_socket.recv(1024)
         print(data.decode('utf-8'))
         Words = data.decode('utf-8')
         RCV_Words = Words.split()
         if RCV_Words[1] == "200":
-            ''' LOG. ''' 
-            datos_log = str_now + " Received from " + PROXY_IP + ":" 
-            datos_log +=  PROXY_PORT + " "+  "SIP/2.0 200 OK" + "\r\n"
+            ''' LOG. '''
+            datos_log = str_now + " Received from " + PROXY_IP + ":"
+            datos_log += PROXY_PORT + " " + "SIP/2.0 200 OK" + "\r\n"
             fich.write(datos_log)
         elif RCV_Words[1] == "489":
             ''' LOG. '''
-            datos_log = str_now + " Received from " + PROXY_IP + ":" 
+            datos_log = str_now + " Received from " + PROXY_IP + ":"
             datos_log += PROXY_PORT + " " + "SIP/2.0 489 Bad Event" + "\r\n"
             fich.write(datos_log)
 elif REQUEST == "INVITE":
@@ -192,7 +192,7 @@ elif REQUEST == "INVITE":
     print("Enviando: " + LINE)
 
     '''LOG '''
-    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT 
+    datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT
     datos_log += LINE.replace("\r\n", " ") + "\r\n"
     #datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + SDP_LINE
     fich.write(datos_log)
@@ -202,12 +202,10 @@ elif REQUEST == "INVITE":
     data = my_socket.recv(1024)
     print(data.decode('utf-8'))
 
-        
-
     WERECEIVE = data.decode('utf-8').split('\r\n\r\n')
-    
-    print("WE RECEIVE" ,WERECEIVE)
-    
+
+    print("WE RECEIVE", WERECEIVE)
+
     if WERECEIVE[0] == "SIP/2.0 404 User Not Found":
         print(WERECEIVE[0])
     elif WERECEIVE[0] == "SIP/2.0 100 Trying":
@@ -226,12 +224,12 @@ elif REQUEST == "INVITE":
         print("MUSTRECEIVE: ", MUSTRECEIVE)
         print("WERECEIVE_CODES: ", WERECEIVE_CODES)
 
-        #ENVIO AUTOMATICO ACK AL RECIBIR 100 180 200 DEL PROXY  PARTE DEL SERVIDOR
+        #ENVIO AUTOMATICO ACK AL RECIBIR 100 180 200 DEL PROXY DEL SERVIDOR
         if WERECEIVE_CODES == MUSTRECEIVE:
             ''' LOG.'''
             #HEMOS RECIBIDO EL 100 180 200 DEL PROXY
-            datos_log1 = str_now + " Received from " + PROXY_IP + ":" 
-            datos_log1 += PROXY_PORT + " SIP/2.0 100 Trying" 
+            datos_log1 = str_now + " Received from " + PROXY_IP + ":"
+            datos_log1 += PROXY_PORT + " SIP/2.0 100 Trying"
             datos_log1 += " SIP/2.0 180 Ring" + " SIP/2.0 200 OK "
             datos_log1 += WERECEIVE[3].replace("\r\n", " ") + "\r\n"
             fich.write(datos_log1)
@@ -248,15 +246,11 @@ elif REQUEST == "INVITE":
 
             print ('Vamos a ejecutar', aEjecutar)
             os.system(aEjecutar)
-            #print("ENVIANDO AUDIO RTP IMAGINARIO AL PUERTO: ", RTP_PORT_RECEIVE)
 
-            
             #ENVIAMOS ACK
             datos_log2 = str_now + " Sent to " + PROXY_IP + ":"
             datos_log2 += PROXY_PORT + " " + LINE.replace("\r\n", " ") + "\r\n"
             fich.write(datos_log2)
-        
-
 
 elif REQUEST == "BYE":
     SIP_INFO = USUARIO
@@ -273,10 +267,10 @@ elif REQUEST == "BYE":
     RCV_Words = Words.split()
     if RCV_Words[1] == "200":
         ''' LOG '''
-        datos_log1 = str_now + " Received from " + PROXY_IP + ":" 
+        datos_log1 = str_now + " Received from " + PROXY_IP + ":"
         datos_log1 += PROXY_PORT + " SIP/2.0 200 OK "
         fich.write(datos_log1)
-    
+
 # Cerramos todo
 my_socket.close()
 print("Fin.")
