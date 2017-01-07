@@ -128,15 +128,15 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     Words_LINES = LINE.split()
                     LINE_SIP = Words_LINES[1].split(":")
                     USUARIO_SIP = LINE_SIP[1]
-                    print("WORDS_LINES",Words_LINES)
+                    print("WORDS_LINES", Words_LINES)
                     RCV_PORT = Words_LINES[1].split(":")[2]
-                    
+
                     response = Words_LINES[7].split("'")[1]
                     print("response: ", response)
 
                     ''' LOG. '''
-                    datos_log1 = str_now + " Received from " 
-                    datos_log1 += self.client_address[0] + ":" + RCV_PORT 
+                    datos_log1 = str_now + " Received from "
+                    datos_log1 += self.client_address[0] + ":" + RCV_PORT
                     datos_log1 += " " + LINE.replace("\r\n", " ") + "\r\n"
                     fich.write(datos_log1)
 
@@ -230,12 +230,11 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                 elif len(Words_LINES) == 5:
                     RCV_PORT = Words_LINES[1].split(":")[2]
                     '''LOG.'''
-                    datos_log7 = str_now + " Received from " 
+                    datos_log7 = str_now + " Received from "
                     datos_log7 += self.client_address[0] + ":"
-                    datos_log7 += RCV_PORT + " " + LINE.replace("\r\n", " ") 
+                    datos_log7 += RCV_PORT + " " + LINE.replace("\r\n", " ")
                     datos_log7 += "\r\n"
                     fich.write(datos_log7)
-                    
 
                     print("Enviamos un 401 Unauthorized")
                     LINE_SIP = ("SIP/2.0 401 Unauthorized\r\n\r\n")
@@ -244,7 +243,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     self.wfile.write(bytes(LINE_DIGEST, 'utf-8'))
 
                     '''LOG.'''
-                    datos_log6 = str_now + " Sent to " 
+                    datos_log6 = str_now + " Sent to "
                     datos_log6 += self.client_address[0] + ":"
                     datos_log6 += RCV_PORT + LINE_DIGEST.replace("\r\n", " ")
                     datos_log6 += "\r\n"
@@ -259,7 +258,6 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                 #print("US_INVITE", US_INVITE)
                 US_ORIGIN = Words_LINES[6].split("=")[1]
 
-                
                 print("Este es el usuario al que queremos invitar", US_INVITE)
                 with open('registered.json') as file:
                     data = json.load(file)
@@ -267,101 +265,105 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     #print("IMPRIMIENDO EL DICCIONARIO", data)
                     #dataipdata = data[USUARIO_SIP]['address']
                     #print("ESTO ES DATA IP DATA", dataipdata)
-
+                    ENCONTRADO = False
                     for user in data:
-                        print(user)
-                        print(US_INVITE)
-                        print(US_ORIGIN)
+                        #print(user)
+                        #print(US_INVITE)
+                        #print(US_ORIGIN)
                         if user == US_INVITE:
-                            print("PODEMOS COMUNICARNOS CON ESTE USUARIO!")
-                            print('Este es el usuario registrado', user)
-                            print("Usuario que queremos invitar: ", US_INVITE)
-                            dataipdata = data[USUARIO_SIP]['address']
-                            dataportdata = data[USUARIO_SIP]['port']
-                            print("Puerto del invitado", dataportdata)
+                            ENCONTRADO = True
+                            print(ENCONTRADO)
+                    if ENCONTRADO:
+                        print("PODEMOS COMUNICARNOS CON ESTE USUARIO!")
+                        print('Este es el usuario registrado', user)
+                        print("Usuario que queremos invitar: ", US_INVITE)
+                        dataipdata = data[USUARIO_SIP]['address']
+                        dataportdata = data[USUARIO_SIP]['port']
+                        print("Puerto del invitado", dataportdata)
+                        '''LOG'''
+                        datos_log1 = str_now + " Received from "
+                        datos_log1 += self.client_address[0] + ":"
+                        datos_log1 += str(self.client_address[1]) + " "
+                        datos_log1 += LINE.replace("\r\n", " ") + "\r\n"
+                        fich.write(datos_log1)
+                        '''SOCKET'''
+                        # Creamos el socket y  atamos un servidor/puerto
+                        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        my_socket.connect((dataipdata, int(dataportdata)))
+                        my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+                        '''LOG.'''
+                        datos_log2 = str_now + " Sent to "
+                        datos_log2 += dataipdata + ":" + dataportdata
+                        datos_log2 += " " + LINE.replace("\r\n", " ")
+                        datos_log2 += "\r\n"
+                        fich.write(datos_log2)
+                        data = my_socket.recv(1024)
+                        print("Hemos recibido del servidor:", "\r\n")
+                        print(data.decode('utf-8'))
+                        DATA = data.decode('utf-8')
+                        WERECEIVE = DATA.split('\r\n\r\n')[0:-1]
+                        WERECEIVE_CODES = WERECEIVE[:3]
+                        WERECEIVE_SDP = WERECEIVE[3:]
+                        SDP_SPLIT = WERECEIVE[4].split("\r\n")
+                        VERSION = WERECEIVE[4].split("\r\n")[0]
+                        ORIGIN = SDP_SPLIT[1]
+                        SESION = SDP_SPLIT[2]
+                        TIME = SDP_SPLIT[3]
+                        MULTIMEDIA = SDP_SPLIT[4]
+                        #Mensaje SDP
+                        answer = WERECEIVE_SDP[0] + "\r\n" + VERSION
+                        answer += "\r\n" + ORIGIN + "\r\n" + SESION
+                        answer += "\r\n" + TIME + "\r\n" + MULTIMEDIA
+
+                        print("Prueba del WE RECEIVE: ", WERECEIVE)
+                        MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
+                        MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
+                        MUSTRECEIVE200 = ("SIP/2.0 200 OK")
+                        MUSTRECEIVE = [MUSTRECEIVE100,
+                                       MUSTRECEIVE180, MUSTRECEIVE200]
+                        #print("WERECEIVE_CODES", WERECEIVE_CODES)
+                        #print("MUSTRECEIVE", MUSTRECEIVE)
+
+                        if WERECEIVE_CODES == MUSTRECEIVE:
                             '''LOG'''
-                            datos_log1 = str_now + " Received from " 
-                            datos_log1 += self.client_address[0] + ":"
-                            datos_log1 += str(self.client_address[1]) + " "
-                            datos_log1 += LINE.replace("\r\n", " ") + "\r\n"
+                            datos_log1 = str_now + " Received from "
+                            datos_log1 += dataipdata + ":" + dataportdata
+                            datos_log1 += " " + DATA.replace("\r\n", " ")
+                            datos_log1 += "\r\n"
                             fich.write(datos_log1)
-                            '''SOCKET'''
-                            # Creamos el socket y  atamos un servidor/puerto
-                            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                            my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                            my_socket.connect((dataipdata, int(dataportdata)))
-                            my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
-                            '''LOG.'''
-                            datos_log2 = str_now + " Sent to " 
-                            datos_log2 += dataipdata + ":" +  dataportdata
-                            datos_log2 += " " + LINE.replace("\r\n", " ") 
-                            datos_log2 += "\r\n"
-                            fich.write(datos_log2)
-                            data = my_socket.recv(1024)
-                            print("Hemos recibido del servidor:", "\r\n")
-                            print(data.decode('utf-8'))
-                            DATA = data.decode('utf-8')
-                            WERECEIVE = DATA.split('\r\n\r\n')[0:-1]
-                            WERECEIVE_CODES = WERECEIVE[:3]
-                            WERECEIVE_SDP = WERECEIVE[3:]
-                            SDP_SPLIT = WERECEIVE[4].split("\r\n")
-                            VERSION = WERECEIVE[4].split("\r\n")[0]
-                            ORIGIN = SDP_SPLIT[1]
-                            SESION = SDP_SPLIT[2]
-                            TIME = SDP_SPLIT[3]
-                            MULTIMEDIA = SDP_SPLIT[4]
-                            #Mensaje SDP
-                            answer = WERECEIVE_SDP[0] + "\r\n" + VERSION
-                            answer += "\r\n" + ORIGIN + "\r\n" + SESION
-                            answer += "\r\n" + TIME + "\r\n" + MULTIMEDIA
+                            self.wfile.write(b"SIP/2.0 100 Trying\r\n\r\n")
+                            self.wfile.write(b"SIP/2.0 180 Ring\r\n\r\n")
+                            self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
+                            self.wfile.write(bytes(answer, 'utf-8'))
+                            '''LOG '''
+                            datos_log1 = str_now + " Sent to "
+                            datos_log1 += self.client_address[0] + ":"
+                            datos_log1 += str(self.client_address[1])
+                            datos_log1 += " SIP/2.0 100 Trying"
+                            datos_log1 += " SIP/2.0 180 Ring"
+                            datos_log1 += " SIP/2.0 200 OK "
+                            datos_log1 += answer.replace("\r\n", " ")
+                            datos_log1 += "\r\n"
+                            fich.write(datos_log1)
 
-                            print("Prueba del WE RECEIVE: ", WERECEIVE)
-                            MUSTRECEIVE100 = ("SIP/2.0 100 Trying")
-                            MUSTRECEIVE180 = ("SIP/2.0 180 Ring")
-                            MUSTRECEIVE200 = ("SIP/2.0 200 OK")
-                            MUSTRECEIVE = [MUSTRECEIVE100,
-                                           MUSTRECEIVE180, MUSTRECEIVE200]
-                            #print("WERECEIVE_CODES", WERECEIVE_CODES)
-                            #print("MUSTRECEIVE", MUSTRECEIVE)
+                    else:
 
-                            if WERECEIVE_CODES == MUSTRECEIVE:
-                                '''LOG'''
-                                datos_log1 = str_now + " Received from "
-                                datos_log1 += dataipdata + ":" + dataportdata
-                                datos_log1 += " " + DATA.replace("\r\n", " ") 
-                                datos_log1 += "\r\n"
-                                fich.write(datos_log1)
-                                self.wfile.write(b"SIP/2.0 100 Trying\r\n\r\n")
-                                self.wfile.write(b"SIP/2.0 180 Ring\r\n\r\n")
-                                self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
-                                self.wfile.write(bytes(answer, 'utf-8'))
-                                '''LOG '''
-                                datos_log1 = str_now + " Sent to "
-                                datos_log1 +=  self.client_address[0] + ":"
-                                datos_log1 += str(self.client_address[1])
-                                datos_log1 += " SIP/2.0 100 Trying"
-                                datos_log1 += " SIP/2.0 180 Ring"
-                                datos_log1 += " SIP/2.0 200 OK "
-                                datos_log1 += answer.replace("\r\n", " ")
-                                datos_log1 += "\r\n"
-                                fich.write(datos_log1)
-
-                        elif user != US_INVITE and user == US_ORIGIN:
-                            print("HELLO")
-                            answer404 = ("SIP/2.0 404 User Not Found\r\n\r\n")
-                            print("Enviando SIP/2.0 404 User Not Found")
-                            self.wfile.write(bytes(answer404, 'utf-8'))
-                            '''LOG'''
-                            datos_log = str_now + " Sent to "
-                            datos_log +=  self.client_address[0] + ":"
-                            datos_log += str(self.client_address[1]) + " "
-                            datos_log += answer404.replace("\r\n", " ")
-                            datos_log += "\r\n"
-                            fich.write(datos_log)
+                        print("HELLO")
+                        answer404 = ("SIP/2.0 404 User Not Found\r\n\r\n")
+                        print("Enviando SIP/2.0 404 User Not Found")
+                        self.wfile.write(bytes(answer404, 'utf-8'))
+                        '''LOG'''
+                        datos_log = str_now + " Sent to "
+                        datos_log += self.client_address[0] + ":"
+                        datos_log += str(self.client_address[1]) + " "
+                        datos_log += answer404.replace("\r\n", " ")
+                        datos_log += "\r\n"
+                        fich.write(datos_log)
             elif REQUEST == 'ACK':
                 '''LOG'''
                 datos_log1 = str_now + " Received from "
-                datos_log1 +=  self.client_address[0] + ":"
+                datos_log1 += self.client_address[0] + ":"
                 datos_log1 += str(self.client_address[1]) + " "
                 datos_log1 += LINE.replace("\r\n", " ") + "\r\n"
                 fich.write(datos_log1)
@@ -389,9 +391,9 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             my_socket.connect((dataipdata, int(dataportdata)))
                             my_socket.send(bytes(LINE_ACK, 'utf-8') + b'\r\n')
                             '''LOG.'''
-                            datos_log2 = str_now + " Sent to " 
-                            datos_log2 += dataipdata + ":" +  dataportdata
-                            datos_log2 += " " + LINE_ACK.replace("\r\n", " ") 
+                            datos_log2 = str_now + " Sent to "
+                            datos_log2 += dataipdata + ":" + dataportdata
+                            datos_log2 += " " + LINE_ACK.replace("\r\n", " ")
                             datos_log2 += "\r\n"
                             fich.write(datos_log2)
                             data = my_socket.recv(1024)
@@ -422,9 +424,9 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             my_socket.connect((dataipdata, int(dataportdata)))
                             my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
                             '''LOG.'''
-                            datos_log1 = str_now + " Sent to " 
-                            datos_log1 += dataipdata + ":" +  dataportdata
-                            datos_log1 += " " +  LINE.replace("\r\n", " ") 
+                            datos_log1 = str_now + " Sent to "
+                            datos_log1 += dataipdata + ":" + dataportdata
+                            datos_log1 += " " + LINE.replace("\r\n", " ")
                             datos_log1 += "\r\n"
                             fich.write(datos_log1)
                             data = my_socket.recv(1024)
@@ -437,14 +439,14 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                             if WERECEIVE == MUSTRECEIVE:
                                 ''' LOG.'''
                                 datos_log2 = str_now + " Received "
-                                datos_log2 += dataipdata + ":" +  dataportdata
+                                datos_log2 += dataipdata + ":" + dataportdata
                                 datos_log2 += " SIP/2.0 200 OK" + "\r\n"
                                 fich.write(datos_log2)
 
                                 self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
                                 ''' LOG.'''
                                 datos_log3 = str_now + " Sent to "
-                                datos_log3 +=  self.client_address[0] + ":"
+                                datos_log3 += self.client_address[0] + ":"
                                 datos_log3 += str(self.client_address[1])
                                 datos_log3 += " SIP/2.0 200 OK" + "\r\n"
                                 fich.write(datos_log3)
