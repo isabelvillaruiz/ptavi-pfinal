@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-''' USER AGENT SERVER'''
+"""USER AGENT SERVER."""
 
 import socket
 import socketserver
@@ -11,7 +11,7 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 import time
 
-''' READING AND EXTRACTION OF XML DATA'''
+"""READING AND EXTRACTION OF XML DATA."""
 
 if len(sys.argv) != 2:
     sys.exit("Usage: python uaserver.py config")
@@ -21,9 +21,10 @@ XML_DATA = sys.argv[1]
 
 
 class SmallSMILHandler(ContentHandler):
+    """CLASE DE LECTURA DE XML."""
 
     def __init__(self):
-
+        """Diccionario xml."""
         self.list = []
         self.dicc = {"account": ["username", "passwd"],
                      "uaserver": ["ip", "puerto"],
@@ -33,6 +34,7 @@ class SmallSMILHandler(ContentHandler):
                      "audio": ["path"]}
 
     def startElement(self, name, attrib):
+        """Start Element."""
         if name in self.dicc:
             dicc = {}
             for item in self.dicc[name]:
@@ -41,7 +43,7 @@ class SmallSMILHandler(ContentHandler):
             self.list.append(diccname)
 
     def get_tags(self):
-
+        """Devuelve la lista xml."""
         return self.list
 
 parser = make_parser()
@@ -73,11 +75,14 @@ fichero = LOG_FILE
 fich = open(fichero, 'a')
 str_now = time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()))
 
+
 class EchoHandler(socketserver.DatagramRequestHandler):
+    """Echo."""
+
     PORT_RTP = []
 
     def handle(self):
-            """Escribe dirección y puerto cliente (tupla client_address)."""
+            u"""Escribe dirección y puerto cliente (tupla client_address)."""
             while 1:
                 # Leyendo línea a línea lo que nos envía el cliente
                 text = self.rfile.read()
@@ -120,10 +125,10 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                     self.wfile.write(bytes(answer, 'utf-8'))
                     '''LOG'''
                     datos_log2 = str_now + " Sent to " + PROXY_IP + ":"
-                    datos_log2 += PROXY_PORT + " " 
+                    datos_log2 += PROXY_PORT + " "
                     datos_log2 += answer.replace("\r\n", " ") + "\r\n"
                     fich.write(datos_log2)
-                    
+
                 elif REQUEST == 'ACK':
                     '''LOG'''
                     datos_log1 = str_now + " Received from "
