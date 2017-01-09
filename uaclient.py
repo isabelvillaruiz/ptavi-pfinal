@@ -35,7 +35,7 @@ class Handler(ContentHandler):
     """CLASE DE LECTURA DE XML."""
 
     def __init__(self):
-
+        """Diccionario xml."""
         self.list = []
         self.dicc = {"account": ["username", "passwd"],
                      "uaserver": ["ip", "puerto"],
@@ -45,6 +45,7 @@ class Handler(ContentHandler):
                      "audio": ["path"]}
 
     def startElement(self, name, attrib):
+        """Start Element."""
         if name in self.dicc:
             dicc = {}
             for item in self.dicc[name]:
@@ -53,7 +54,7 @@ class Handler(ContentHandler):
             self.list.append(diccname)
 
     def get_tags(self):
-
+        """Devuelve la lista xml."""
         return self.list
 
 
