@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-''' PROXY - REGISTRO '''
+"""PROXY - REGISTRO."""
 
 import socketserver
 import socket
@@ -24,15 +24,17 @@ if len(sys.argv) != 2:
 
 
 class Handler(ContentHandler):
+    """CLASE DE LECTURA DE XML."""
 
     def __init__(self):
-
+        """Diccionario xml."""
         self.list = []
         self.dicc = {"server": ["name", "ip", "puerto"],
                      "database": ["path", "passwdpath"],
                      "log": ["path"]}
 
     def startElement(self, name, attrib):
+        """Start Element."""
         if name in self.dicc:
             dicc = {}
             for item in self.dicc[name]:
@@ -41,7 +43,7 @@ class Handler(ContentHandler):
             self.list.append(diccname)
 
     def get_tags(self):
-
+        """Devuelve la lista xml."""
         return self.list
 
 
@@ -84,16 +86,18 @@ print("PASSWORD2: ", PASSWORD2)
 
 
 class EchoHandler(socketserver.DatagramRequestHandler):
+    """Echo."""
 
     dicc = {}
 
     def register2json(self):
+        """Archivo json de registro."""
         json_file = open("registered.json", "w")
         json.dump(self.dicc, json_file)
         json_file.close()
 
     def json2registered(self):
-
+        """Comprobacion de json."""
         try:
             #("Estamos probando")
             with open("registered.json") as JsonFile:
@@ -102,6 +106,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                 pass
 
     def handle(self):
+        u"""Escribe dirección y puerto cliente (tupla client_address)."""
         while 1:
             """Escribe dirección y puerto del cliente(tupla client_address)."""
             # Leyendo línea a línea lo que nos envía el cliente
@@ -253,10 +258,11 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                 print("Imprimiendo sabiendo que es un invite: ", Words_LINES)
 
                 USUARIO_SIP = LINE_SIP[1]
-                #print("USUARIO_SIP", USUARIO_SIP)
+                print("USUARIO_SIP", USUARIO_SIP)
                 US_INVITE = Words_LINES[1].split(":")[1]
-                #print("US_INVITE", US_INVITE)
+                print("USUARIO INVITE", US_INVITE)
                 US_ORIGIN = Words_LINES[6].split("=")[1]
+                print("USUARIO ORIGEN", US_ORIGIN)
 
                 print("Este es el usuario al que queremos invitar", US_INVITE)
                 with open('registered.json') as file:
@@ -279,6 +285,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                         print("Usuario que queremos invitar: ", US_INVITE)
                         dataipdata = data[USUARIO_SIP]['address']
                         dataportdata = data[USUARIO_SIP]['port']
+
                         print("Puerto del invitado", dataportdata)
                         '''LOG'''
                         datos_log1 = str_now + " Received from "
@@ -292,6 +299,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         my_socket.connect((dataipdata, int(dataportdata)))
                         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+                        #print(LINE)
                         '''LOG.'''
                         datos_log2 = str_now + " Sent to "
                         datos_log2 += dataipdata + ":" + dataportdata
