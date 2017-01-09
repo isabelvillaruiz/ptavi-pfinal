@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-''' USER AGENT CLIENT '''
+"""USER AGENT CLIENT."""
 
 import socket
 import sys
@@ -32,6 +32,7 @@ elif REQUEST == 'BYE':
 
 
 class Handler(ContentHandler):
+    """CLASE DE LECTURA DE XML."""
 
     def __init__(self):
 
@@ -236,8 +237,8 @@ elif REQUEST == "INVITE":
             SIP_INFO = USUARIO
             LINE = "ACK" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
             my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
-            data = my_socket.recv(1024)
-            print(data.decode('utf-8'))
+            #data = my_socket.recv(1024)
+            #print(data.decode('utf-8'))
             print("Reproduciendo")
             aEjecutar = './mp32rtp -i 127.0.0.1 -p ' + RTP_PORT_RECEIVE + ' < '
             aEjecutar += SONG
