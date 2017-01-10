@@ -16,7 +16,7 @@ import time
 if len(sys.argv) != 2:
     sys.exit("Usage: python uaserver.py config")
 
-#FIRST PARAMETER : XML FILE
+#FIRST PARAMETER :  XML FILE
 XML_DATA = sys.argv[1]
 
 
