@@ -114,6 +114,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
             line = self.rfile.read()
             print("El cliente nos manda " + "\r\n" + text.decode('utf-8'))
             LINE = text.decode('utf-8')
+            REQUESTS = ['REGISTER', 'INVITE', 'ACK', 'BYE']
             Words_LINES = LINE.split()
             print("PRUEBA CON MIKE:", Words_LINES)
             REQUEST = Words_LINES[0]
@@ -123,6 +124,10 @@ class EchoHandler(socketserver.DatagramRequestHandler):
             print("La peticion es: ", REQUEST)
             print("Listening...")
 
+            if not REQUEST in REQUESTS:
+                LINE_405 = 'SIP/2.0 405 Method Not Allowed\r\n\r\n'
+                self.wfile.write("SIP/2.0 405 Method Not Allowed\r\n\r\n") 
+          
             if REQUEST == 'REGISTER':
 
                 print(len(Words_LINES))
