@@ -301,7 +301,6 @@ class EchoHandler(socketserver.DatagramRequestHandler):
 
                         #print(LINE)
 
-
                         '''LOG.'''
                         datos_log2 = str_now + " Sent to "
                         datos_log2 += dataipdata + ":" + dataportdata
