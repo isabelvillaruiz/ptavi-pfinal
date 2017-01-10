@@ -126,8 +126,8 @@ class EchoHandler(socketserver.DatagramRequestHandler):
 
             if not REQUEST in REQUESTS:
                 LINE_405 = 'SIP/2.0 405 Method Not Allowed\r\n\r\n'
-                self.wfile.write("SIP/2.0 405 Method Not Allowed\r\n\r\n") 
-          
+                self.wfile.write("SIP/2.0 405 Method Not Allowed\r\n\r\n")
+
             if REQUEST == 'REGISTER':
 
                 print(len(Words_LINES))
