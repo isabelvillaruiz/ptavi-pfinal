@@ -111,7 +111,7 @@ str_now = time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()))
 REQUESTS = ['INVITE', 'REGISTER', 'BYE']
 if not REQUEST in REQUESTS:
     LINE_405 = 'SIP/2.0 405 Method Not Allowed\r\n\r\n'
-    print("SIP/2.0 405 Method Not Allowed\r\n\r\n") 
+    print("SIP/2.0 405 Method Not Allowed\r\n\r\n")
 
 if REQUEST == "REGISTER":
     SIP_INFO = USERNAME + ':' + UASERVER_PORT
@@ -122,7 +122,7 @@ if REQUEST == "REGISTER":
     print(LINE)
     print("Enviando: " + "\r\n" + LINE)
 
-    try:    
+    try:
         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
         data = my_socket.recv(1024)
         print(data.decode('utf-8'))
@@ -132,7 +132,6 @@ if REQUEST == "REGISTER":
         datos_log6 += PROXY_IP + " port " + PROXY_PORT + "\r\n"
         fich.write(datos_log6)
         sys.exit("Error: No server listening")
-
 
     ''' LOG '''
     datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " "
@@ -207,8 +206,7 @@ elif REQUEST == "INVITE":
     print(LINE)
     print("Enviando: " + LINE)
 
-
-    try:    
+    try:
         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
         data = my_socket.recv(1024)
         print(data.decode('utf-8'))
@@ -225,7 +223,6 @@ elif REQUEST == "INVITE":
     #datos_log += " sip:" + SIP_INFO + " SIP/2.0 " + SDP_LINE
     fich.write(datos_log)
     ''' end log '''
-
 
     WERECEIVE = data.decode('utf-8').split('\r\n\r\n')
 
@@ -282,8 +279,7 @@ elif REQUEST == "BYE":
     LINE = "BYE" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
     print("Enviando: " + LINE)
 
-
-    try:    
+    try:
         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
         data = my_socket.recv(1024)
         print(data.decode('utf-8'))
