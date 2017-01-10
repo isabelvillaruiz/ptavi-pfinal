@@ -1,2 +1,2 @@
 Restablecer usuarios conectados
-
+Consistencia frente errores erroneos
