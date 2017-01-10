@@ -4,18 +4,16 @@
 tengo los sockets que sobrepasan el margen derecho (max 79) y no he encontrado
 una manera que compile y el PEP8 lo recoga en sus condiciones.
 
-2) Al realizar el check me salta la línea: 
 
-
-3) He realizado de los apartados avanzados:
+2) He realizado de los apartados avanzados:
     -Restablecer los usuarios conectados
     -Consistencia del servidor proxy/registrar frente a valores erroneos:
         - SIP/2.0 489 Bad Event
 
-4) He realizado el PEP257 en todos los programas 
+3) He realizado el PEP257 en todos los programas 
 
 
-5) Al realizar check: 
+4) Al realizar check: 
 
 isa@isa-HP-Pavilion-15-Notebook-PC:~/Documentos/PTAVI/ptavi-pfinal$ python check-pfinal.py isabelvillaruiz
 
