@@ -108,6 +108,11 @@ str_now = time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()))
 
 '''REQUESTS and their lines '''
 
+REQUESTS = ['INVITE', 'REGISTER', 'BYE']
+if not REQUEST in REQUESTS:
+    LINE_405 = 'SIP/2.0 405 Method Not Allowed\r\n\r\n'
+    print("SIP/2.0 405 Method Not Allowed\r\n\r\n") 
+
 if REQUEST == "REGISTER":
     SIP_INFO = USERNAME + ':' + UASERVER_PORT
     SIP_LINE = " sip:" + SIP_INFO + " SIP/2.0\r\n"
@@ -117,15 +122,24 @@ if REQUEST == "REGISTER":
     print(LINE)
     print("Enviando: " + "\r\n" + LINE)
 
+    try:    
+        my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+        data = my_socket.recv(1024)
+        print(data.decode('utf-8'))
+    except socket.error:
+        '''LOG.'''
+        datos_log6 = str_now + " Error: No server listening at "
+        datos_log6 += PROXY_IP + " port " + PROXY_PORT + "\r\n"
+        fich.write(datos_log6)
+        sys.exit("Error: No server listening")
+
+
     ''' LOG '''
     datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT + " "
     datos_log += LINE.replace("\r\n", " ") + "\r\n"
     fich.write(datos_log)
     '''end log'''
 
-    my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
-    data = my_socket.recv(1024)
-    print(data.decode('utf-8'))
     #Recepcion del proxy
     LINE = data.decode('utf-8')
     Words_LINES = LINE.split()
@@ -193,6 +207,18 @@ elif REQUEST == "INVITE":
     print(LINE)
     print("Enviando: " + LINE)
 
+
+    try:    
+        my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+        data = my_socket.recv(1024)
+        print(data.decode('utf-8'))
+    except socket.error:
+        '''LOG.'''
+        datos_log6 = str_now + " Error: No server listening at "
+        datos_log6 += PROXY_IP + " port " + PROXY_PORT + "\r\n"
+        fich.write(datos_log6)
+        sys.exit("Error: No server listening")
+
     '''LOG '''
     datos_log = str_now + " Sent to " + PROXY_IP + ":" + PROXY_PORT
     datos_log += LINE.replace("\r\n", " ") + "\r\n"
@@ -200,9 +226,6 @@ elif REQUEST == "INVITE":
     fich.write(datos_log)
     ''' end log '''
 
-    my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
-    data = my_socket.recv(1024)
-    print(data.decode('utf-8'))
 
     WERECEIVE = data.decode('utf-8').split('\r\n\r\n')
 
@@ -258,13 +281,24 @@ elif REQUEST == "BYE":
     SIP_INFO = USUARIO
     LINE = "BYE" + " sip:" + SIP_INFO + " SIP/2.0\r\n"
     print("Enviando: " + LINE)
+
+
+    try:    
+        my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+        data = my_socket.recv(1024)
+        print(data.decode('utf-8'))
+    except socket.error:
+        '''LOG.'''
+        datos_log6 = str_now + " Error: No server listening at "
+        datos_log6 += PROXY_IP + " port " + PROXY_PORT + "\r\n"
+        fich.write(datos_log6)
+        sys.exit("Error: No server listening")
+
     ''' LOG'''
     datos_log3 = str_now + " Sent to " + PROXY_IP + ":"
     datos_log3 += PROXY_PORT + LINE.replace("\r\n", " ") + "\r\n"
     fich.write(datos_log3)
-    my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
-    data = my_socket.recv(1024)
-    print(data.decode('utf-8'))
+
     Words = data.decode('utf-8')
     RCV_Words = Words.split()
     if RCV_Words[1] == "200":
