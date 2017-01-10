@@ -285,7 +285,6 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                         print("Usuario que queremos invitar: ", US_INVITE)
                         dataipdata = data[USUARIO_SIP]['address']
                         dataportdata = data[USUARIO_SIP]['port']
-
                         print("Puerto del invitado", dataportdata)
                         '''LOG'''
                         datos_log1 = str_now + " Received from "
@@ -299,7 +298,10 @@ class EchoHandler(socketserver.DatagramRequestHandler):
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         my_socket.connect((dataipdata, int(dataportdata)))
                         my_socket.send(bytes(LINE, 'utf-8') + b'\r\n')
+
                         #print(LINE)
+
+
                         '''LOG.'''
                         datos_log2 = str_now + " Sent to "
                         datos_log2 += dataipdata + ":" + dataportdata

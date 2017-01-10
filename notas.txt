@@ -1,0 +1,36 @@
+................................NOTAS.........................................
+
+1) He realizado PEP8 en todos los programas, pero en el proxy_registrar.py 
+tengo los sockets que sobrepasan el margen derecho (max 79) y no he encontrado
+una manera que compile y el PEP8 lo recoga en sus condiciones.
+
+2) Al realizar el check me salta la línea: 
+
+
+3) He realizado de los apartados avanzados:
+    -Restablecer los usuarios conectados
+    -Consistencia del servidor proxy/registrar frente a valores erroneos:
+        - SIP/2.0 489 Bad Event
+
+4) He realizado el PEP257 en todos los programas 
+
+
+5) Al realizar check: 
+
+isa@isa-HP-Pavilion-15-Notebook-PC:~/Documentos/PTAVI/ptavi-pfinal$ python check-pfinal.py isabelvillaruiz
+
+
+Clonando el repositorio http://github.com/isabelvillaruiz/ptavi-pfinal
+
+Se ha implementado funcionalidades avanzadas.
+
+Traceback (most recent call last):
+  File "check-pfinal.py", line 127, in <module>
+    output = subprocess.Popen(["tshark", "-r", "/tmp/" + aleatorio + "/" + filename], stdout=subprocess.PIPE)
+  File "/usr/lib/python2.7/subprocess.py", line 710, in __init__
+    errread, errwrite)
+  File "/usr/lib/python2.7/subprocess.py", line 1327, in _execute_child
+    raise child_exception
+OSError: [Errno 2] No such file or directory
+
+..............................................................................
