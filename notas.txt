@@ -13,7 +13,10 @@ una manera que compile y el PEP8 lo recoga en sus condiciones.
 3) He realizado el PEP257 en todos los programas 
 
 
-4) Al realizar check: 
+4) La practica tiene diferentes print's de prueba donde se ver en todo
+    momento lo que envío y lo que uso en cada momento.
+
+5) Al realizar check: 
 
 isa@isa-HP-Pavilion-15-Notebook-PC:~/Documentos/PTAVI/ptavi-pfinal$ python check-pfinal.py isabelvillaruiz
 
