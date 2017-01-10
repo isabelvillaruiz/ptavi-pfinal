@@ -63,7 +63,7 @@ USERNAME = ACCOUNT['username']
 UASERVER_PORT = data[1]['uaserver']['puerto']
 #print("Esto es el puerto de escucha del UAServer:", UASERVER_PORT)
 UAS_IP = data[1]['uaserver']['ip']
-#print("Esto es la direccion IP del UASERVER: ", UAS_IP)
+#print("Esto es la direccion IP del UASERVER: ",  UAS_IP)
 RTP_PORT = data[2]['rtpaudio']['puerto']
 SONG = data[5]['audio']['path']
 LOG_FILE = data[4]['log']['path']
